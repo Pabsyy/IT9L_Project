@@ -13,14 +13,24 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * The primary key associated with the table.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'UserID';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
+        'address',
+        'contact_number',
     ];
 
     /**
@@ -44,5 +54,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the user's full name as a computed attribute.
+     *
+     * @return string
+     */
+    public function getUserNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
     }
 }

@@ -12,13 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+            $table->id('UserID')->unsigned();
+            $table->string('first_name', 50);
+            $table->string('last_name', 50);
+            $table->string('username', 101)->storedAs("CONCAT(first_name, ' ', last_name)"); // Ensure MariaDB version supports this
+            $table->string('email', 100)->unique();
+            $table->string('profile_picture_url')->nullable(); // Removed 'after' clause
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password', 255);
             $table->rememberToken();
-            $table->timestamps();
+            $table->enum('role', ['admin', 'customer'])->default('admin');
+            $table->string('address', 255)->nullable();
+            $table->string('contact_number', 50)->nullable();
+            $table->timestamps(0);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -42,6 +48,12 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('cartitem');
+        Schema::dropIfExists('purchaseorderitem');
+        Schema::dropIfExists('cart');
+        Schema::dropIfExists('purchaseorder');
+        Schema::dropIfExists('supplier');
+        Schema::dropIfExists('product');
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
