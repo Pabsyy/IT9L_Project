@@ -2,7 +2,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen flex">
+<div class="min-h-screen flex bg-gradient-to-r from-purple-500 to-blue-500 text-white">
     <!-- Sidebar -->
     @include('sidebar')
 
@@ -12,30 +12,27 @@
         <main class="p-6">
             <!-- Inventory Search and Add Button -->
             <div class="flex justify-between items-center mb-6">
-                <input type="text" placeholder="Search inventory..." class="border-gray-300 rounded-md w-64 px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                <button onclick="openAddModal()" class="px-4 py-2 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition-all duration-300">Add New Item</button>
+                <input type="text" placeholder="Search inventory..." class="border-gray-300 rounded-md w-64 px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-300 text-gray-800" />
+                <button onclick="openAddModal()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md shadow-md hover:from-purple-700 hover:to-blue-700 transition-all duration-300">Add New Item</button>
             </div>
             <!-- Inventory Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 @foreach ($products as $product)
-                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1">
+                <div onclick="openDetailsModal('{{ $product->ProductName }}', '{{ $product->SKU }}', '{{ $product->Category }}', {{ $product->Quantity }}, {{ $product->Price }}, '{{ $product->Description }}', '{{ $product->Image }}', {{ $product->ProductID }})" 
+                     class="bg-white text-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 cursor-pointer">
                     <img src="{{ $product->Image }}" alt="{{ $product->ProductName }}" class="h-56 w-full object-cover rounded-md mb-3 border border-gray-200">
-                    <div class="flex justify-between items-center mb-1">
-                        <h3 class="text-base font-bold text-gray-800">{{ $product->ProductName }}</h3>
-                        <p class="text-sm font-medium text-gray-700">${{ number_format($product->Price, 2) }}</p>
-                    </div>
-                    <div class="mt-1">
-                        @if ($product->Quantity > 0)
-                            <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">In Stock</span>
-                        @else
-                            <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">Out of Stock</span>
-                        @endif
-                    </div>
-                    <div class="mt-3 flex justify-center">
-                        <button onclick="openDetailsModal('{{ $product->ProductName }}', '{{ $product->SKU }}', '{{ $product->Category }}', {{ $product->Quantity }}, {{ $product->Price }}, '{{ $product->Description }}', '{{ $product->Image }}', {{ $product->ProductID }})" 
-                                class="w-full px-4 py-2 text-white text-sm font-semibold rounded-md shadow-md bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 hover:scale-105 transition-all duration-300">
-                            View Details
-                        </button>
+                    <div class="flex flex-col justify-between h-32">
+                        <div class="mb-2">
+                            <h3 class="text-base font-bold truncate" title="{{ $product->ProductName }}">{{ $product->ProductName }}</h3>
+                            <p class="text-sm font-medium">${{ number_format($product->Price, 2) }}</p>
+                        </div>
+                        <div>
+                            @if ($product->Quantity > 0)
+                                <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">In Stock</span>
+                            @else
+                                <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">Out of Stock</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 @endforeach
