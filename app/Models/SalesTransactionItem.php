@@ -6,21 +6,25 @@ use Illuminate\Database\Eloquent\Model;
 
 class SalesTransactionItem extends Model
 {
-    protected $table = 'salestransaction_item'; // Adjust the table name if necessary
-    protected $primaryKey = 'TransactionItemID'; // Adjust the primary key if necessary
-    public $timestamps = false; // Assuming no timestamps for this table
+    protected $table = 'salestransactionitem';
+    protected $primaryKey = 'id';
+    public $timestamps = true;
 
     protected $fillable = [
-        'TransactionID', 'ProductID', 'Quantity', 'Price'
+        'TransactionID',  // Note: This matches the column name in migration
+        'ProductID', 
+        'Quantity',
+        'UnitPrice'
     ];
 
     public function salesTransaction()
     {
-        return $this->belongsTo(SalesTransaction::class, 'TransactionID');
+        return $this->belongsTo(SalesTransaction::class, 'TransactionID', 'id');
+        // Changed from 'SalesTransactionID' to 'TransactionID' to match migration
     }
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'ProductID');
+        return $this->belongsTo(Product::class, 'ProductID', 'ProductID');
     }
 }

@@ -1,84 +1,146 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+@extends('layouts.guest')
 
-        <!-- First Name -->
-        <div>
-            <x-input-label for="first_name" :value="__('First Name')" />
-            <x-text-input id="first_name" class="block mt-1 w-full" type="text" name="first_name" :value="old('first_name')" required autofocus autocomplete="given-name" />
-            <x-input-error :messages="$errors->get('first_name')" class="mt-2" />
+@section('content')
+    <div class="bg-transparent min-h-screen flex items-center justify-center p-4">
+        <div class="relative w-full max-w-4xl flex rounded-xl overflow-hidden shadow-2xl">
+            <!-- Left side -->
+            <div class="hidden md:block w-2/5 bg-primary relative overflow-hidden">
+                <div class="absolute inset-0 opacity-20">
+                    <div class="gear-animation absolute top-1/4 left-1/4 w-40 h-40 border-8 border-white rounded-full"></div>
+                    <div class="gear-animation absolute bottom-1/4 right-1/4 w-32 h-32 border-8 border-white rounded-full" style="animation-direction: reverse;"></div>
+                    <div class="gear-animation absolute top-1/2 right-1/3 w-24 h-24 border-8 border-white rounded-full" style="animation-duration: 15s;"></div>
+                </div>
+                <div class="relative h-full flex flex-col justify-center items-center text-white p-8 z-10">
+                    <img src="{{ asset('images/UnderTheHoodLogo.png') }}" alt="UnderTheHood Logo" class="h-full w-auto rounded-lg object-contain">
+                    <p class="text-center mb-8">Join our community! Create an admin account to start managing your system.</p>
+                    <div class="flex flex-wrap justify-center gap-4 mb-8">
+                        <div class="w-12 h-12 flex items-center justify-center bg-white bg-opacity-20 rounded-full">
+                            <i class="ri-user-settings-line text-white ri-lg"></i>
+                        </div>
+                        <div class="w-12 h-12 flex items-center justify-center bg-white bg-opacity-20 rounded-full">
+                            <i class="ri-shield-keyhole-line text-white ri-lg"></i>
+                        </div>
+                        <div class="w-12 h-12 flex items-center justify-center bg-white bg-opacity-20 rounded-full">
+                            <i class="ri-settings-line text-white ri-lg"></i>
+                        </div>
+                    </div>
+                    <p class="text-sm text-center opacity-80">Get started with user management, performance monitoring, and settings control.</p>
+                </div>
+            </div>
+
+            <!-- Right side -->
+            <div class="w-full md:w-3/5 bg-white p-8 flex flex-col justify-center relative">
+                @if (session('success'))
+                    <div id="success-alert" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        <strong class="font-bold">Success!</strong>
+                        <span class="block sm:inline">{{ session('success') }}</span>
+                    </div>
+                @endif
+
+                <div id="register-form" class="form-container slide-in">
+                    <div class="mb-8 text-center md:text-left">
+                        <h3 class="text-2xl font-bold text-gray-800">Create Admin Account</h3>
+                        <p class="text-gray-600">Create a new administrator account</p>
+                    </div>
+                    <form method="POST" action="{{ route('register') }}" class="space-y-5">
+                        @csrf
+
+                        <!-- First Name -->
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                    <i class="ri-user-line"></i>
+                                </span>
+                                <x-text-input id="first_name" class="w-full pl-10 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary" type="text" name="first_name" :value="old('first_name')" required autofocus autocomplete="given-name" placeholder="Enter your first name"/>
+                                <x-input-error :messages="$errors->get('first_name')" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <!-- Last Name -->
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                    <i class="ri-user-line"></i>
+                                </span>
+                                <x-text-input id="last_name" name="last_name" class="w-full pl-10 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary" type="text" name="last_name" :value="old('last_name')" required autocomplete="family-name" placeholder="Enter your last name"/>
+                                <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                    <i class="ri-mail-line"></i>
+                                </span>
+                                <x-text-input id="email" class="w-full pl-10 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary" type="email" name="email" :value="old('email')" required autocomplete="username" placeholder="Enter your email"/>
+                                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                    <i class="ri-lock-password-line"></i>
+                                </span>
+                                <x-text-input id="password" class="w-full pl-10 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                                    type="password"
+                                    name="password"
+                                    required autocomplete="new-password" placeholder="Enter your password" oninput="checkPasswordStrength()"/>
+                                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div>
+                            <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                    <i class="ri-lock-password-line"></i>
+                                </span>
+                                <x-text-input id="password_confirmation" class="w-full pl-10 py-2 text-sm border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                                    type="password"
+                                    name="password_confirmation" required autocomplete="new-password" placeholder="Confirm your password"/>
+                                <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+                                <p id="password-error" class="text-red-500 text-sm mt-1 hidden">Passwords do not match.</p>
+                            </div>
+                        </div>
+
+                        <!-- Terms Checkbox -->
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5 mt-1">
+                                <input type="checkbox" id="terms" name="terms" class="hidden">
+                                <label for="terms" class="flex items-center cursor-pointer">
+                                    <div class="w-5 h-5 border border-gray-300 rounded flex items-center justify-center mr-2 custom-checkbox bg-white">
+                                        <i class="ri-check-line text-white text-xs hidden"></i>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="ml-2">
+                                <label for="terms" class="text-sm text-gray-600 user-select-none">
+                                    I acknowledge and accept the administrator <a href="#" class="text-primary hover:underline">Terms of Service</a> and <a href="#" class="text-primary hover:underline">Security Policy</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="w-full h-12 bg-primary text-white font-medium rounded-button hover:bg-primary/90 transition-all duration-300 flex items-center justify-center whitespace-nowrap">
+                            Create Account
+                        </button>
+                        <div class="text-center mt-4">
+                            <p class="text-gray-600 text-sm">
+                                Already have an account?
+                                <a href="{{ route('login') }}" class="text-primary font-medium hover:text-primary/80">Sign In</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-
-        <!-- Last Name -->
-        <div class="mt-4">
-            <x-input-label for="last_name" :value="__('Last Name')" />
-            <x-text-input id="last_name" class="block mt-1 w-full" type="text" name="last_name" :value="old('last_name')" required autocomplete="family-name" />
-            <x-input-error :messages="$errors->get('last_name')" class="mt-2" />
-        </div>
-
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4 relative">
-            <x-input-label for="password" :value="__('Password')" />
-            <x-text-input id="password" class="block mt-1 w-full"
-                          type="password"
-                          name="password"
-                          required autocomplete="new-password" />
-            <button type="button" onclick="togglePasswordVisibility('password', 'password-eye')" 
-                    class="absolute top-11 transform -translate-y-1/2 right-3 flex items-center text-sm leading-5 transition-transform duration-200 hover:scale-110">
-                <svg id="password-eye" class="h-5 w-5 text-gray-500 hover:text-gray-700" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.274 1.057-.732 2.057-1.458 3-1.274 2.057-4.523 4-8.084 4-3.561 0-6.81-1.943-8.084-4-.726-.943-1.184-1.943-1.458-3z" />
-                </svg>
-            </button>
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4 relative">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                          type="password"
-                          name="password_confirmation"
-                          required autocomplete="new-password" />
-            <button type="button" onclick="togglePasswordVisibility('password_confirmation', 'confirm-password-eye')" 
-                    class="absolute top-11 transform -translate-y-1/2 right-3 flex items-center text-sm leading-5 transition-transform duration-200 hover:scale-110">
-                <svg id="confirm-password-eye" class="h-5 w-5 text-gray-500 hover:text-gray-700" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.274 1.057-.732 2.057-1.458 3-1.274 2.057-4.523 4-8.084 4-3.561 0-6.81-1.943-8.084-4-.726-.943-1.184-1.943-1.458-3z" />
-                </svg>
-            </button>
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-
-    <script>
-        function togglePasswordVisibility(fieldId, eyeIconId) {
-            const field = document.getElementById(fieldId);
-            const eyeIcon = document.getElementById(eyeIconId);
-            if (field.type === 'password') {
-                field.type = 'text';
-                eyeIcon.setAttribute('stroke', 'currentColor');
-            } else {
-                field.type = 'password';
-                eyeIcon.setAttribute('stroke', 'currentColor');
-            }
-        }
-    </script>
-</x-guest-layout>
+    </div>
+@endsection

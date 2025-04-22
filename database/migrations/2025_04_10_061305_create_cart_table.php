@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cart', function (Blueprint $table) {
-            $table->id();
+            $table->id('cartID')->unsigned();
             $table->unsignedBigInteger('UserID');
             $table->timestamps();
 
@@ -25,7 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cartitem'); // Drop dependent table first
         Schema::dropIfExists('cart');
     }
 };

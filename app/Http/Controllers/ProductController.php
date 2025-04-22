@@ -3,12 +3,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 class ProductController extends Controller
 {
     public function index()
     {
-        return view('products.index'); // Ensure this view exists
+        $user = Auth::user(); // Get the authenticated user
+        $userInitials = strtoupper(substr($user->name, 0, 1)); // Get the first letter of the user's name
+        $username = $user->username;
+
+        return view('products.index', compact('userInitials', 'username')); // Ensure this view exists
     }
 
     public function categories()

@@ -5,13 +5,18 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Supplier;
+use Illuminate\Support\Facades\Auth;
 
 class SuppliersController extends Controller
 {
     public function index()
     {
+        $user = Auth::user(); // Get the authenticated user
+        $userInitials = strtoupper(substr($user->name, 0, 1)); // Get the first letter of the user's name
+        $username = $user->username;
+
         $suppliers = Supplier::all();
-        return view('suppliers', compact('suppliers'));
+        return view('suppliers', compact('suppliers','userInitials', 'username'));
     }
 
     public function store(Request $request)

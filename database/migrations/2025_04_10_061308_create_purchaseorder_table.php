@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('purchaseorder', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->bigIncrements('purchaseorderID')->unsigned();
             $table->unsignedBigInteger('UserID');
             $table->unsignedBigInteger('SupplierID');
             $table->dateTime('OrderDate');
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('UserID')->references('UserID')->on('users')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('SupplierID')->references('id')->on('supplier')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('SupplierID')->references('SupplierID')->on('supplier')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
@@ -29,7 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchaseorderitem'); // Drop dependent table first
         Schema::dropIfExists('purchaseorder');
     }
 };

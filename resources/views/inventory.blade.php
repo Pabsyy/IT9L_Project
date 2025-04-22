@@ -1,383 +1,134 @@
-<!-- filepath: d:\Ryan's not so important files\Documents\Projects\IT9L_Project\Admin Panel\resources\views\inventory.blade.php -->
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen flex bg-gradient-to-r from-purple-500 to-blue-500 text-white">
-    <!-- Sidebar -->
+<div class="min-h-screen flex">
     @include('sidebar')
 
-    <!-- Main Content -->
     <div class="flex-1">
         @include('partials.header', ['title' => 'Inventory Management'])
+
         <main class="p-6">
-            <!-- Inventory Search and Add Button -->
+            <!-- Search and Add New -->
             <div class="flex justify-between items-center mb-6">
-                <input type="text" placeholder="Search inventory..." class="border-gray-300 rounded-md w-64 px-3 py-2 shadow-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-300 text-gray-800" />
-                <button onclick="openAddModal()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md shadow-md hover:from-purple-700 hover:to-blue-700 transition-all duration-300">Add New Item</button>
+                <input type="search" placeholder="Search inventory..." class="w-full md:w-96 pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2.5 rounded-button flex items-center justify-center">
+                    <i class="ri-add-line mr-2"></i>
+                    <span>Add New Item</span>
+                </button>
             </div>
-            <!-- Inventory Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                @foreach ($products as $product)
-                <div onclick="openDetailsModal('{{ $product->ProductName }}', '{{ $product->SKU }}', '{{ $product->Category }}', {{ $product->Quantity }}, {{ $product->Price }}, '{{ $product->Description }}', '{{ $product->Image }}', {{ $product->ProductID }})" 
-                     class="bg-white text-gray-800 rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 cursor-pointer">
-                    <img src="{{ $product->Image }}" alt="{{ $product->ProductName }}" class="h-56 w-full object-cover rounded-md mb-3 border border-gray-200">
-                    <div class="flex flex-col justify-between h-32">
-                        <div class="mb-2">
-                            <h3 class="text-base font-bold truncate" title="{{ $product->ProductName }}">{{ $product->ProductName }}</h3>
-                            <p class="text-sm font-medium">${{ number_format($product->Price, 2) }}</p>
+
+            <!-- Product Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                @forelse ($products as $product)
+                    <div class="product-card bg-white rounded-lg shadow-sm overflow-hidden">
+                        <img src="{{ asset($product->Image) }}" alt="{{ $product->ProductName }}" class="h-48 w-full object-cover">
+                        <div class="p-4">
+                            <h3 class="text-gray-800 font-medium mb-1">{{ $product->ProductName }}</h3>
+                            <p class="text-primary font-semibold mb-2">₱{{ number_format($product->Price, 2) }}</p>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                                {{ $product->Quantity > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                <i class="ri-checkbox-circle-fill mr-1"></i>
+                                {{ $product->Quantity > 0 ? 'In Stock (' . $product->Quantity . ')' : 'Out of Stock' }}
+                            </span>
                         </div>
-                        <div>
-                            @if ($product->Quantity > 0)
-                                <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">In Stock</span>
-                            @else
-                                <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">Out of Stock</span>
-                            @endif
+                        <div class="bg-gray-50 px-4 py-3 flex justify-end">
+                            <button onclick="openEditModal({{ $product->ProductID }}, '{{ $product->ProductName }}', {{ $product->Price }}, {{ $product->Quantity }}, '{{ $product->Category }}', '{{ $product->Description }}')" class="text-gray-500 hover:text-primary mr-3">
+                                <i class="ri-edit-line"></i>
+                            </button>
+                            <form method="POST" action="{{ route('products.destroy', ['product' => $product->ProductID]) }}" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-gray-500 hover:text-red-500">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
-                </div>
-                @endforeach
-            </div>
-            <!-- Pagination -->
-            <div class="mt-6">
-                {{ $products->links('pagination::tailwind') }}
+                @empty
+                    <div class="col-span-full flex flex-col items-center justify-center py-12">
+                        <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                            <i class="ri-shopping-bag-line text-2xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-1">No products found</h3>
+                        <p class="text-sm text-gray-500 mb-4">Start by adding some products to your inventory.</p>
+                        <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center text-sm">
+                            <i class="ri-add-line mr-2"></i>
+                            Add New Item
+                        </button>
+                    </div>
+                @endforelse
             </div>
         </main>
     </div>
 </div>
 
-<div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-4"></div>
-
-<!-- Add New Item Modal -->
-<div id="addModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl transform transition-transform duration-300 scale-95">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Item</h2>
-        <form id="addForm" action="/products" method="POST" enctype="multipart/form-data" onsubmit="saveNewItem(event)">
-            @csrf
-            <div class="flex flex-col md:flex-row gap-6">
-                <!-- Product Image -->
-                <div class="flex-shrink-0">
-                    <img id="addImagePreview" src="" alt="Product Image" class="h-64 w-64 object-cover rounded-md border border-gray-200 hidden">
-                    <div class="mt-4">
-                        <label for="addImage" class="px-4 py-2 bg-blue-600 text-white rounded-md shadow-md cursor-pointer hover:bg-blue-700 transition-all duration-300">
-                            Choose File
-                        </label>
-                        <input type="file" name="Image" id="addImage" class="hidden" onchange="updateAddFileName(this)">
-                        <span id="addFileName" class="ml-3 text-sm text-gray-600">No file chosen</span>
-                    </div>
-                </div>
-                <!-- Form Fields -->
-                <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="addProductName" class="block text-sm font-medium text-gray-700">Product Name</label>
-                        <input type="text" name="ProductName" id="addProductName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label for="addSKU" class="block text-sm font-medium text-gray-700">SKU</label>
-                        <input type="text" name="SKU" id="addSKU" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
-                    <div>
-                        <label for="addCategory" class="block text-sm font-medium text-gray-700">Category</label>
-                        <input type="text" name="Category" id="addCategory" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
-                    <div>
-                        <label for="addQuantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                        <input type="number" name="Quantity" id="addQuantity" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
-                    <div>
-                        <label for="addPrice" class="block text-sm font-medium text-gray-700">Price</label>
-                        <input type="text" name="Price" id="addPrice" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
-                    <div class="col-span-2">
-                        <label for="addDescription" class="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea name="Description" id="addDescription" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                    </div>
-                </div>
-            </div>
-            <div class="flex justify-end mt-6">
-                <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition-all duration-300 mr-2">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition-all duration-300">Add Item</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Edit Modal -->
-<div id="editModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl transform transition-transform duration-300 scale-95">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Edit Product</h2>
-        <form id="editForm" action="" method="POST" enctype="multipart/form-data" onsubmit="saveChanges(event)">
+<!-- Edit Product Modal -->
+<div id="editProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
+        <div class="border-b px-6 py-4 flex items-center justify-between">
+            <h3 class="text-lg font-medium text-gray-900">Edit Product</h3>
+            <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-500">
+                <i class="ri-close-line text-2xl"></i>
+            </button>
+        </div>
+        <form id="editProductForm" method="POST" action="">
             @csrf
             @method('PUT')
-            <div class="flex flex-col md:flex-row gap-6">
-                <!-- Product Image -->
-                <div class="flex-shrink-0">
-                    <img id="modalImagePreview" src="" alt="Product Image" class="h-64 w-64 object-cover rounded-md border border-gray-200 hidden">
-                    <div class="mt-4">
-                        <label for="modalImage" class="px-4 py-2 bg-blue-600 text-white rounded-md shadow-md cursor-pointer hover:bg-blue-700 transition-all duration-300">
-                            Choose File
-                        </label>
-                        <input type="file" name="Image" id="modalImage" class="hidden" onchange="updateFileName(this)">
-                        <span id="fileName" class="ml-3 text-sm text-gray-600">No file chosen</span>
-                    </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label for="ProductName" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" id="ProductName" name="ProductName" class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary">
                 </div>
-                <!-- Form Fields -->
-                <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="ProductName" class="block text-sm font-medium text-gray-700">Product Name</label>
-                        <input type="text" name="ProductName" id="modalProductName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label for="SKU" class="block text-sm font-medium text-gray-700">SKU</label>
-                        <input type="text" name="SKU" id="modalSKU" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
-                    <div>
-                        <label for="Category" class="block text-sm font-medium text-gray-700">Category</label>
-                        <input type="text" name="Category" id="modalCategory" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
-                    <div>
-                        <label for="Quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                        <input type="number" name="Quantity" id="modalQuantity" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
-                    <div>
-                        <label for="Price" class="block text-sm font-medium text-gray-700">Price</label>
-                        <input type="text" name="Price" id="modalPrice" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                    </div>
-                    <div class="col-span-2">
-                        <label for="Description" class="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea name="Description" id="modalDescription" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                    </div>
+                <div>
+                    <label for="Price" class="block text-sm font-medium text-gray-700">Price</label>
+                    <input type="number" id="Price" name="Price" step="0.01" class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary">
+                </div>
+                <div>
+                    <label for="Quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+                    <input type="number" id="Quantity" name="Quantity" class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary">
+                </div>
+                <div>
+                    <label for="Category" class="block text-sm font-medium text-gray-700">Category</label>
+                    <input type="text" id="Category" name="Category" class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary">
+                </div>
+                <div>
+                    <label for="Description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="Description" name="Description" rows="3" class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary"></textarea>
+                </div>
+                <div>
+                    <label for="Image" class="block text-sm font-medium text-gray-700">Product Image</label>
+                    <input type="file" id="Image" name="Image" accept="image/*" class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-primary focus:border-primary">
                 </div>
             </div>
-            <div class="flex justify-end mt-6">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition-all duration-300 mr-2">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition-all duration-300">Save Changes</button>
+            <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                <button type="button" onclick="closeEditModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg mr-2">Cancel</button>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Save Changes</button>
             </div>
         </form>
-    </div>
-</div>
-
-<!-- Details Modal -->
-<div id="detailsModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl transform transition-transform duration-300 scale-95">
-        <div class="flex flex-col md:flex-row">
-            <!-- Product Image -->
-            <div class="flex-shrink-0 mb-6 md:mb-0 md:mr-8">
-                <img id="detailsImage" src="" alt="Product Image" class="h-80 w-80 object-cover rounded-md border border-gray-200">
-            </div>
-            <!-- Product Details -->
-            <div class="flex-1">
-                <h2 class="text-4xl font-bold mb-6 text-gray-800" id="detailsProductName">Product Details</h2>
-                <p class="text-2xl font-semibold text-gray-700 mb-4"><strong>Price:</strong> $<span id="detailsPrice"></span></p>
-                <p class="text-lg text-gray-600 mb-3"><strong>SKU:</strong> <span id="detailsSKU"></span></p>
-                <p class="text-lg text-gray-600 mb-3"><strong>Category:</strong> <span id="detailsCategory"></span></p>
-                <p class="text-lg text-gray-600 mb-3"><strong>Stock:</strong> <span id="detailsQuantity"></span></p>
-                <p class="text-lg text-gray-600 mb-4"><strong>Description:</strong></p>
-                <p class="text-lg text-gray-600 text-justify mb-6" id="detailsDescription"></p>
-                <!-- Action Buttons -->
-                <div class="flex space-x-6">
-                    <button onclick="closeDetailsModal(); openEditModal(currentProductID, document.getElementById('detailsProductName').textContent, document.getElementById('detailsSKU').textContent, document.getElementById('detailsCategory').textContent, document.getElementById('detailsQuantity').textContent, parseFloat(document.getElementById('detailsPrice').textContent), document.getElementById('detailsImage').src, document.getElementById('detailsDescription').textContent)" 
-                            class="px-6 py-3 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition-all duration-300">
-                        Edit
-                    </button>
-                    <button onclick="deleteProduct(currentProductID)" 
-                            class="px-6 py-3 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition-all duration-300">
-                        Delete
-                    </button>
-                    <button type="button" onclick="closeDetailsModal()" 
-                            class="px-6 py-3 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition-all duration-300">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
 <script>
-    let currentProductID = null;
+    function openEditModal(id, name, price, quantity, category, description) {
+        // Set the form action to the update route
+        document.getElementById('editProductForm').action = `/products/${id}`;
+        document.getElementById('ProductName').value = name;
+        document.getElementById('Price').value = price;
+        document.getElementById('Quantity').value = quantity;
+        document.getElementById('Category').value = category;
+        document.getElementById('Description').value = description;
 
-    function openAddModal() {
-        document.getElementById('addModal').classList.remove('hidden');
-    }
-
-    function closeAddModal() {
-        document.getElementById('addModal').classList.add('hidden');
-    }
-
-    function updateAddFileName(input) {
-        const fileName = input.files.length > 0 ? input.files[0].name : 'No file chosen';
-        document.getElementById('addFileName').textContent = fileName;
-
-        const preview = document.getElementById('addImagePreview');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                preview.src = e.target.result;
-                preview.classList.remove('hidden');
-            };
-            reader.readAsDataURL(input.files[0]);
-        } else {
-            preview.classList.add('hidden');
-        }
-    }
-
-    async function saveNewItem(event) {
-        event.preventDefault();
-
-        const form = document.getElementById('addForm');
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-
-            if (response.ok) {
-                showToast('Product added successfully!', 'success');
-                closeAddModal();
-                location.reload();
-            } else {
-                const error = await response.json();
-                showToast('Failed to add product: ' + (error.message || 'Unknown error'), 'error');
-            }
-        } catch (err) {
-            console.error('Error:', err);
-            showToast('An error occurred while adding the product.', 'error');
-        }
-    }
-
-    function openEditModal(ProductID, ProductName, SKU, Category, Quantity, Price, Image, Description) {
-        document.getElementById('editForm').action = `/products/${ProductID}`;
-        document.getElementById('modalProductName').value = ProductName;
-        document.getElementById('modalSKU').value = SKU;
-        document.getElementById('modalCategory').value = Category;
-        document.getElementById('modalQuantity').value = Quantity;
-        document.getElementById('modalPrice').value = Price;
-        document.getElementById('modalDescription').value = Description;
-
-        if (Image) {
-            const imagePreview = document.getElementById('modalImagePreview');
-            imagePreview.src = Image;
-            imagePreview.classList.remove('hidden');
-        }
-
-        // Automatically open the modal
-        document.getElementById('editModal').classList.remove('hidden');
+        // Show the modal
+        const modal = document.getElementById('editProductModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
 
     function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
-    }
-
-    function updateFileName(input) {
-        const fileName = input.files.length > 0 ? input.files[0].name : 'No file chosen';
-        document.getElementById('fileName').textContent = fileName;
-    }
-
-    function showToast(message, type = 'success') {
-        const toastContainer = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `px-4 py-3 rounded-md shadow-md text-white text-sm ${
-            type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } transition-opacity duration-300 opacity-0`;
-        toast.textContent = message;
-
-        toastContainer.appendChild(toast);
-
-        // Fade in
-        setTimeout(() => {
-            toast.classList.add('opacity-100');
-        }, 10);
-
-        // Remove after 3 seconds
-        setTimeout(() => {
-            toast.classList.remove('opacity-100');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    async function saveChanges(event) {
-        event.preventDefault(); // Prevent the default form submission behavior
-
-        const form = document.getElementById('editForm');
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                showToast('Product updated successfully!', 'success');
-                closeEditModal();
-                location.reload(); // Reload the page to reflect the changes
-            } else {
-                const error = await response.json();
-                showToast('Failed to update product: ' + (error.message || 'Unknown error'), 'error');
-            }
-        } catch (err) {
-            console.error('Error:', err);
-            showToast('An error occurred while updating the product.', 'error');
-        }
-    }
-
-    function openDetailsModal(ProductName, SKU, Category, Quantity, Price, Description, Image, ProductID) {
-        currentProductID = ProductID;
-        document.getElementById('detailsProductName').textContent = ProductName;
-        document.getElementById('detailsSKU').textContent = SKU;
-        document.getElementById('detailsCategory').textContent = Category;
-        document.getElementById('detailsQuantity').textContent = Quantity;
-        document.getElementById('detailsPrice').textContent = Price.toFixed(2);
-        document.getElementById('detailsDescription').textContent = Description;
-
-        if (Image) {
-            const detailsImage = document.getElementById('detailsImage');
-            detailsImage.src = Image;
-            detailsImage.classList.remove('hidden');
-        }
-
-        document.getElementById('detailsModal').classList.remove('hidden');
-    }
-
-    function closeDetailsModal() {
-        document.getElementById('detailsModal').classList.add('hidden');
-    }
-
-    function deleteProduct(ProductID) {
-        if (confirm('Are you sure you want to delete this product?')) {
-            fetch(`/products/${ProductID}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    showToast('Product deleted successfully!', 'success');
-                    closeDetailsModal();
-                    location.reload();
-                } else {
-                    showToast('Failed to delete product.', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('An error occurred while deleting the product.', 'error');
-            });
-        }
+        // Hide the modal
+        const modal = document.getElementById('editProductModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 </script>
-
-<!-- Include the reusable sidebar script -->
-<script src="{{ asset('js/sidebar.js') }}"></script>
 @endsection

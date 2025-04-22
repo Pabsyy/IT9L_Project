@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\SuppliersController;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 // Redirect root URL to login or dashboard based on authentication status
 Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : redirect('/auth');
+    return Auth::check() ? redirect()->route('dashboard') : redirect('/auth');
 });
 
 // Login page
@@ -22,6 +23,7 @@ Route::get('/auth', function () {
 
 // Dashboard page
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/admin/dashboard/revenue-data', [DashboardController::class, 'getRevenueData'])->name('dashboard.revenue-data');
 
 Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory');
 
@@ -41,6 +43,9 @@ Route::get('/categories', [ProductController::class, 'categories'])->name('categ
 Route::resource('products', ProductController::class);
 Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
 Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+
+// Profile page
+Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {

@@ -12,17 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('purchaseorderitem', function (Blueprint $table) {
-            $table->id();
+            $table->id('purchaseorderitemID')->unsigned();
             $table->unsignedBigInteger('PurchaseOrderID');
             $table->unsignedBigInteger('ProductID');
             $table->integer('Quantity');
             $table->decimal('UnitPrice', 10, 2);
             $table->timestamps();
 
-            $table->foreign('PurchaseOrderID')->references('id')->on('purchaseorder')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('PurchaseOrderID')->references('PurchaseOrderID')->on('purchaseorder')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('ProductID')->references('ProductID')->on('product')->onUpdate('cascade'); // Correct column reference
         });
-
     }
 
     /**

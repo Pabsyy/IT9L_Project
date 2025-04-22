@@ -26,7 +26,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('SupplierID')
-                ->references('id')
+                ->references('SupplierID')
                 ->on('supplier')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
