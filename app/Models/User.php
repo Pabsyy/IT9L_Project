@@ -17,7 +17,7 @@ class User extends Authenticatable
      *
      * @var string
      */
-    protected $primaryKey = 'UserID';
+    protected $primaryKey = 'id';
 
     /**
      * The attributes that are mass assignable.
@@ -31,6 +31,14 @@ class User extends Authenticatable
         'password',
         'address',
         'contact_number',
+        'fullName',
+        'phone',
+        'department',
+        'location',
+        'timezone',
+        'language',
+        'role',
+        'profile_picture_url',
     ];
 
     /**

@@ -19,12 +19,11 @@ class SalesTransactionItem extends Model
 
     public function salesTransaction()
     {
-        return $this->belongsTo(SalesTransaction::class, 'TransactionID', 'id');
-        // Changed from 'SalesTransactionID' to 'TransactionID' to match migration
+        return $this->belongsTo(SalesTransaction::class, 'TransactionID', 'id')->with('grand_total'); // Ensure this references 'sales_transactions'
     }
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'ProductID', 'ProductID');
+        return $this->belongsTo(Product::class, 'ProductID', 'id'); // Updated from 'product'
     }
 }

@@ -25,9 +25,7 @@ Route::get('/auth', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/admin/dashboard/revenue-data', [DashboardController::class, 'getRevenueData'])->name('dashboard.revenue-data');
 
-Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory');
-
-Route::get('/orders', [OrdersController::class, 'index'])->name('orders');
+Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory'); // Alias for inventory.index
 
 Route::get('/suppliers', [SuppliersController::class, 'index'])->name('suppliers');
 Route::post('/suppliers', [SuppliersController::class, 'store'])->name('suppliers.store');
@@ -51,9 +49,17 @@ Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/update-picture', [ProfileController::class, 'updatePicture'])->name('profile.update.picture');
-    Route::delete('/profile/delete', [ProfileController::class, 'destroy'])->name('profile.delete');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Orders routes
+    Route::get('/orders', [OrdersController::class, 'index'])->name('orders');
+    Route::get('/orders/create', [OrdersController::class, 'create'])->name('orders.create');
+    Route::post('/orders', [OrdersController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{order}/edit', [OrdersController::class, 'edit'])->name('orders.edit');
+    Route::put('/orders/{order}', [OrdersController::class, 'update'])->name('orders.update');
+    Route::delete('/orders/{order}', [OrdersController::class, 'destroy'])->name('orders.destroy');
+    Route::get('/orders/export', [OrdersController::class, 'export'])->name('orders.export');
 });
 
 // Include authentication routes

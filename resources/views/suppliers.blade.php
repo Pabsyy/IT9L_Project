@@ -3,13 +3,11 @@
 
 @section('content')
 <div class="min-h-screen flex">
-    <!-- Sidebar -->
-    @include('sidebar')
 
     <!-- Main Content for Suppliers -->
     <div class="flex-1">
-        @include('partials.header', ['title' => 'Suppliers Management'])
-        <main class="p-6">
+
+        <main class="p-2">
             <!-- Suppliers Search and Add Button -->
             <div class="flex justify-between items-center mb-6">
                 <input type="text" placeholder="Search suppliers..." class="border-gray-200 rounded-md w-64 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-300" />

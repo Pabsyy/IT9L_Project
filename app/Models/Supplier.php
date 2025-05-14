@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Supplier extends Model
 {
-    protected $table = 'supplier';
+    protected $table = 'suppliers'; // Explicitly set the table name
     protected $primaryKey = 'SupplierID';
     public $timestamps = true;
 

@@ -9,13 +9,13 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $table = 'product';
+    protected $table = 'products';
     protected $primaryKey = 'ProductID';
     public $timestamps = true;
 
     protected $fillable = [
         'SupplierID', 'ProductName', 'Description', 'Image',
-        'Price', 'Quantity', 'Category', 'price', 'stock', 'sales',
+        'Price', 'stock', 'Category', 'price', 'sales',
     ];
 
     public function supplier()

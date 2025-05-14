@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 class InventoryController extends Controller
 {
     // Index method to display the inventory
-    public function index()
+    public function index(Request $request)
     {
         // Get the authenticated user
         $user = Auth::user();
@@ -23,9 +23,35 @@ class InventoryController extends Controller
         // Get the username
         $username = $user->username;
 
-        // Paginate 10 products per page
-        $products = Product::paginate(10);
-        // Paginate the products
+        $query = Product::query();
+
+        if ($request->filled('category')) {
+            $query->where('Category', $request->category);
+        }
+
+        if ($request->filled('brand')) {
+            $query->where('Brand', $request->brand);
+        }
+
+        if ($request->filled('stock_status')) {
+            if ($request->stock_status == 'instock') {
+                $query->where('stock', '>', 0);
+            } elseif ($request->stock_status == 'lowstock') {
+                $query->whereBetween('stock', [1, 10]);
+            } elseif ($request->stock_status == 'outofstock') {
+                $query->where('stock', '=', 0);
+            }
+        }
+
+        if ($request->filled('price_min')) {
+            $query->where('Price', '>=', $request->price_min);
+        }
+
+        if ($request->filled('price_max')) {
+            $query->where('Price', '<=', $request->price_max);
+        }
+
+        $products = $query->paginate(8);
 
         return view('inventory', compact('products', 'userInitials', 'username'));
         // Return the inventory view with the products

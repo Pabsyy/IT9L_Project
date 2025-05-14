@@ -35,17 +35,15 @@ class DashboardController extends Controller
         // Call the checkSystemStatus method
 
         // Fetch data from the database
-        $totalRevenue = SalesTransaction::sum('GrandTotal');
-        // Sum the grand total from the SalesTransaction model
+        $totalRevenue = SalesTransaction::sum('grand_total'); // Renamed from 'GrandTotal'
         $totalOrders = SalesTransaction::count();
-        // Count the total number of orders
         $averageOrderValue = $totalOrders > 0 ? $totalRevenue / $totalOrders : 0;
         // Calculate the average order value
         $totalProducts = Product::count();
         // Count the total number of products
         $newProducts = Product::where('created_at', '>=', now()->subMonth())->count();
         // Count the number of new products added in the last month
-        $topSellingParts = Product::orderBy('sales', 'desc')->take(5)->get();
+        $topSellingParts = Product::orderBy('sales', 'desc')->take(5)->get(); // Ensure 'sales' column exists
         // Get the top 5 selling products
         
         // Fetch recent orders/transactions
@@ -55,13 +53,13 @@ class DashboardController extends Controller
             ->get();
         // Get the 5 most recent transactions
 
-        // Calculate inventory value (sum of price * quantity for all products)
-        $inventoryValue = Product::sum(DB::raw('Price * Quantity'));
+        // Calculate inventory value (sum of price * stock for all products)
+        $inventoryValue = Product::sum(DB::raw('Price * stock'));
         // Calculate the inventory value
 
         // Calculate inventory growth compared to last month
         $lastMonthInventoryValue = Product::where('created_at', '<', now()->startOfMonth())
-            ->sum(DB::raw('Price * Quantity'));
+            ->sum(DB::raw('Price * stock'));
         // Calculate the inventory value from last month
         $inventoryGrowth = $lastMonthInventoryValue > 0 
             ? (($inventoryValue - $lastMonthInventoryValue) / $lastMonthInventoryValue) * 100 
@@ -69,11 +67,11 @@ class DashboardController extends Controller
         // Calculate the inventory growth
         
         // Get low stock products
-        $lowStockProducts = Product::where('Quantity', '<=', 10)->get();
+        $lowStockProducts = Product::where('stock', '<=', 10)->get();
         // Get the products with low stock
         $lowStockCount = $lowStockProducts->count();
         // Count the number of products with low stock
-        $newLowStock = Product::where('Quantity', '<=', 10)
+        $newLowStock = Product::where('stock', '<=', 10)
             ->where('updated_at', '>=', now()->subDay())
             ->count();
         // Count the number of new products with low stock
@@ -89,7 +87,7 @@ class DashboardController extends Controller
         // Calculate the order growth
 
         // Get product categories with counts
-        $categories = DB::table('product')  // Changed from 'products' to 'product'
+        $categories = DB::table('products') // Updated from 'product'
             ->select('Category as name', DB::raw('COUNT(*) as total_products'))
             ->whereNotNull('Category')
             ->groupBy('Category')
@@ -101,7 +99,7 @@ class DashboardController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $monthlyRevenue = SalesTransaction::whereMonth('created_at', $i)
                 ->whereYear('created_at', now()->year)
-                ->sum('GrandTotal');
+                ->sum('grand_total'); // Renamed from 'GrandTotal'
             $monthlyRevenues[] = floatval($monthlyRevenue);
         }
         // Get the monthly revenues
@@ -109,14 +107,12 @@ class DashboardController extends Controller
         // Calculate monthly revenue
         $monthlyRevenue = SalesTransaction::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
-            ->sum('GrandTotal');
-        // Calculate the monthly revenue
+            ->sum('grand_total'); // Renamed from 'GrandTotal'
 
         // Calculate revenue growth
         $lastMonthRevenue = SalesTransaction::whereMonth('created_at', now()->subMonth()->month)
             ->whereYear('created_at', now()->subMonth()->year)
-            ->sum('GrandTotal');
-        // Calculate the revenue from last month
+            ->sum('grand_total'); // Renamed from 'GrandTotal'
         
         $revenueGrowth = $lastMonthRevenue > 0 
             ? (($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100 
@@ -184,7 +180,7 @@ class DashboardController extends Controller
                     $revenue = SalesTransaction::whereYear('created_at', now()->year)
                         ->whereMonth('created_at', '>=', $startMonth)
                         ->whereMonth('created_at', '<=', $startMonth + 2)
-                        ->sum('GrandTotal');
+                        ->sum('grand_total'); // Renamed from 'GrandTotal'
                     $revenues[] = floatval($revenue);
                 }
                 return response()->json([
@@ -197,7 +193,7 @@ class DashboardController extends Controller
                 $revenues = [];
                 for ($year = now()->year - 4; $year <= now()->year; $year++) {
                     $revenue = SalesTransaction::whereYear('created_at', $year)
-                        ->sum('GrandTotal');
+                        ->sum('grand_total'); // Renamed from 'GrandTotal'
                     $revenues[] = floatval($revenue);
                 }
                 return response()->json([
@@ -211,7 +207,7 @@ class DashboardController extends Controller
                 for ($i = 1; $i <= 12; $i++) {
                     $monthlyRevenue = SalesTransaction::whereMonth('created_at', $i)
                         ->whereYear('created_at', now()->year)
-                        ->sum('GrandTotal');
+                        ->sum('grand_total'); // Renamed from 'GrandTotal'
                     $monthlyRevenues[] = floatval($monthlyRevenue);
                 }
                 return response()->json([

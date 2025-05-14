@@ -13,7 +13,7 @@ This is an Admin Panel built using the Laravel framework. It provides a robust a
 
 ### Features
 
-- **Inventory Management**: Add, edit, view, and delete products with details like name, SKU, category, quantity, price, and description.
+- **Inventory Management**: Add, edit, view, and delete products with details like name, SKU, category, stock, price, and description.
 - **Order Management**: Manage customer orders and track their statuses.
 - **Supplier Management**: Add and contact suppliers directly from the admin panel.
 - **Analytics Dashboard**: View key metrics and insights about the business.

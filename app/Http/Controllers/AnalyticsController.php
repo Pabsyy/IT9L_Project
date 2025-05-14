@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SalesTransaction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 // AnalyticsController handles analytics-related requests
 class AnalyticsController extends Controller
@@ -20,7 +21,8 @@ class AnalyticsController extends Controller
         $username = $user->username;
 
         // Fetch sales data grouped by date
-        $salesData = SalesTransaction::selectRaw('DATE(TransactionDate) as date, SUM(GrandTotal) as total')
+        $salesData = DB::table('sales_transactions')
+            ->select(DB::raw('DATE(Transaction_date) as date'), DB::raw('SUM(grand_total) as total'))
             ->groupBy('date')
             ->orderBy('date', 'asc')
             ->get();

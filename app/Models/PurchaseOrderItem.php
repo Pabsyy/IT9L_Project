@@ -20,6 +20,6 @@ class PurchaseOrderItem extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'ProductID');
+        return $this->belongsTo(Product::class, 'ProductID', 'id'); // Updated from 'product'
     }
 }

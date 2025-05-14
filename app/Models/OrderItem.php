@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CartItem extends Model
+class OrderItem extends Model
 {
-    use HasFactory;
-
-    protected $table = 'cart_items'; // Update this if your table name is different
+    //
+    // Specify the table name if it's not the default 'order_items'
+    protected $table = 'order_items'; // Update this if your table name is different
     protected $primaryKey = 'id'; // Update this if your primary key is different
 
     protected $fillable = [

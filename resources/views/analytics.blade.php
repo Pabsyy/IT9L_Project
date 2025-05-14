@@ -3,13 +3,10 @@
 
 @section('content')
 <div class="min-h-screen flex">
-    <!-- Sidebar -->
-    @include('sidebar')
 
     <!-- Main Content for Analytics -->
     <div class="flex-1">
-        @include('partials.header', ['title' => 'Analytics Dashboard'])
-        <main class="p-6">
+        <main class="p-2">
             <!-- Example Chart Section -->
             <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
                 <div class="flex items-center justify-between mb-4">

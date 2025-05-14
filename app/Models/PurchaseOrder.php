@@ -11,7 +11,7 @@ class PurchaseOrder extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'UserID', 'SupplierID', 'OrderDate', 'DeliveryDate'
+        'id', 'SupplierID', 'OrderDate', 'DeliveryDate'
     ];
 
     public function items()
@@ -26,6 +26,6 @@ class PurchaseOrder extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'UserID');
+        return $this->belongsTo(User::class, 'id');
     }
 }

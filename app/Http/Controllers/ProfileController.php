@@ -1,14 +1,16 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
@@ -19,6 +21,19 @@ class ProfileController extends Controller
     {
         return view('profile.edit', [
             'user' => $request->user(),
+            'timezones' => [
+                'pacific' => 'Pacific Time (PT)',
+                'mountain' => 'Mountain Time (MT)',
+                'central' => 'Central Time (CT)',
+                'eastern' => 'Eastern Time (ET)',
+            ],
+            'languages' => [
+                'english' => 'English',
+                'spanish' => 'Spanish',
+                'french' => 'French',
+                'german' => 'German',
+            ],
+            'activities' => [],
         ]);
     }
 
@@ -27,21 +42,24 @@ class ProfileController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        $request->validate([
+        $user = Auth::user(); // Ensure $user is an instance of the User model
+        if (!($user instanceof \App\Models\User)) {
+            throw new \RuntimeException('Authenticated user is not an instance of the User model.');
+        }
+
+        logger('User object: ' . json_encode($user));
+        logger('User ID: ' . $user->id);
+
+        $validated = $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . Auth::user()->UserID . ',UserID',
-            'address' => 'nullable|string|max:255',
-            'contact_number' => 'nullable|string|max:15',
+            'last_name'  => 'required|string|max:255',
+            'email'      => 'required|email|unique:users,email,' . $user->id . ',id',
+            'contact_number' => 'nullable|string|max:255',
+            'address'    => 'nullable|string|max:255',
+            'role'       => 'nullable|string|max:255',
         ]);
 
-        $user = Auth::user();
-        $user->first_name = $request->input('first_name');
-        $user->last_name = $request->input('last_name');
-        $user->email = $request->input('email');
-        $user->address = $request->input('address');
-        $user->contact_number = $request->input('contact_number');
-        $user->save();
+        $user->update($validated);
 
         return redirect()->route('profile.edit')->with('success', 'Profile updated successfully.');
     }
@@ -71,6 +89,23 @@ class ProfileController extends Controller
         $user->save();
 
         return redirect()->back()->with('status', 'Profile picture updated successfully.');
+    }
+
+    /**
+     * Update the user's password.
+     */
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', Password::defaults(), 'confirmed'],
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()->route('profile.edit')->with('status', 'Password updated successfully.');
     }
 
     /**

@@ -1,103 +1,116 @@
-<header class="bg-white shadow-sm z-10">
-    <!-- Top Navigation -->
-    <div class="flex items-center justify-between px-6 py-4">
-        <div class="flex items-center">
-            <button class="md:hidden mr-4 text-gray-600">
-                <div class="w-6 h-6 flex items-center justify-center">
-                    <i class="ri-menu-line"></i>
-                </div>
-            </button>
-<h1 class="text-xl font-semibold text-gray-800">
-    @if (Route::is('dashboard'))
-        Dashboard
-    @elseif (Route::is('inventory'))
-        Inventory
-    @elseif (Route::is('orders'))
-        Orders
-    @elseif (Route::is('suppliers'))
-        Suppliers
-    @elseif (Route::is('analytics'))
-        Analytics
-    @else
-        Dashboard
-    @endif
-</h1>
-        </div>
-        <div class="flex items-center">
-            <div class="relative mr-4">
-                <div class="w-6 h-6 flex items-center justify-center text-gray-600">
-                    <i class="ri-notification-3-line"></i>
-                </div>
-                <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            </div>
-            <div class="flex items-center">
-                <div class="relative" id="userProfileDropdown">
-                    <button id="userProfileButton" type="button" class="flex items-center space-x-2 focus:outline-none">
-                        <img 
-                        src="https://ui-avatars.com/api/?name={{ urlencode($userInitials ?? 'User') }}&background=6366F1&color=ffffff&size=32&bold=true&rounded=true"
-                        alt="{{ $username ?? 'User' }}"
-                            class="w-8 h-8 rounded-full"
-                        />
-                        <span class="text-sm font-medium text-gray-700 cursor-pointer select-none" id="userName">{{ $username }}</span>
-                        <i class="ri-arrow-down-s-line text-gray-400 cursor-pointer" id="dropdownArrow"></i>
-                    </button>
-
-                    <!-- Dropdown menu -->
-                    <div id="userDropdownMenu"
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-100 hidden opacity-0 scale-95 transform transition-all duration-200 ease-out">
-                        <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
-                            <i class="ri-user-line mr-2 text-gray-400"></i>
-                            My Profile
-                        </a>
-                        <a href="{{ route('settings') }}" class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
-                            <i class="ri-settings-4-line mr-2 text-gray-400"></i>
-                            Account Settings
-                        </a>
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
-                            <i class="ri-list-settings-line mr-2 text-gray-400"></i>
-                            Preferences
-                        </a>
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
-                            <i class="ri-question-line mr-2 text-gray-400"></i>
-                            Help & Support
-                        </a>
-                        <div class="border-t border-gray-100 my-1"></div>
-                        <form method="POST" action="{{ route('logout') }}" class="flex items-center px-4 py-2">
-                            @csrf
-                            <button type="submit" class="flex items-center text-sm text-red-600 hover:bg-gray-50 w-full">
-                                <i class="ri-logout-box-r-line mr-2"></i>
-                                Logout
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- Header HTML Structure -->
+<header class="bg-white shadow-sm h-16 flex items-center justify-between px-6">
+  <h1 class="text-2xl font-semibold text-gray-800">{{ $title }}</h1>
+  <div class="flex items-center space-x-4">
+    <div class="relative">
+      <div class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 cursor-pointer">
+        <i class="ri-notification-3-line text-gray-600"></i>
+      </div>
+      <span class="absolute top-0 right-0 h-5 w-5 flex items-center justify-center text-xs text-white bg-red-500 rounded-full">3</span>
     </div>
+    <div class="relative" id="userProfileDropdown">
+      <div class="flex items-center cursor-pointer" id="userProfileButton">
+        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-2">
+          <i class="ri-user-line text-gray-600"></i>
+        </div>
+        <span class="font-medium text-gray-700">{{ Auth::user()->username }}</span>
+        <div class="w-5 h-5 flex items-center justify-center ml-1">
+          <i class="ri-arrow-down-s-line"></i>
+        </div>
+      </div>
+      <div id="userDropdownMenu" class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 hidden opacity-0 transform -translate-y-2 transition-all duration-200">
+        <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-2 text-indigo-600 hover:bg-gray-50">
+          <div class="w-5 h-5 flex items-center justify-center mr-3">
+            <i class="ri-user-settings-line"></i>
+          </div>
+          <span>My Profile</span>
+        </a>
+        <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">
+          <div class="w-5 h-5 flex items-center justify-center mr-3">
+            <i class="ri-settings-3-line"></i>
+          </div>
+          <span>Account Settings</span>
+        </a>
+        <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">
+          <div class="w-5 h-5 flex items-center justify-center mr-3">
+            <i class="ri-equalizer-line"></i>
+          </div>
+          <span>Preferences</span>
+        </a>
+        <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">
+          <div class="w-5 h-5 flex items-center justify-center mr-3">
+            <i class="ri-question-line"></i>
+          </div>
+          <span>Help & Support</span>
+        </a>
+        <div class="h-px bg-gray-200 my-2"></div>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <a href="{{ route('logout') }}" class="flex items-center px-4 py-2 text-red-600 hover:bg-gray-50" onclick="event.preventDefault(); this.closest('form').submit();">
+                <div class="w-5 h-5 flex items-center justify-center mr-3">
+                    <i class="ri-logout-box-line"></i>
+                </div>
+                <span>Logout</span>
+            </a>
+        </form>
+      </div>
+    </div>
+  </div>
 </header>
 
+<!-- Required CSS for Header Functionality -->
+<style>
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  
+  /* Animation styles for dropdown */
+  #userDropdownMenu {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+</style>
+
+<!-- Header JavaScript Functionality -->
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const userProfileButton = document.getElementById('userProfileButton');
-        const userDropdownMenu = document.getElementById('userDropdownMenu');
+document.addEventListener('DOMContentLoaded', function() {
+  // User profile dropdown functionality
+  const userProfileButton = document.getElementById('userProfileButton');
+  const userDropdownMenu = document.getElementById('userDropdownMenu');
+  const userProfileDropdown = document.getElementById('userProfileDropdown');
+  let isDropdownOpen = false;
 
-        userProfileButton.addEventListener('click', () => {
-            const isHidden = userDropdownMenu.classList.contains('hidden');
-            if (isHidden) {
-                userDropdownMenu.classList.remove('hidden', 'opacity-0', 'scale-95');
-                userDropdownMenu.classList.add('opacity-100', 'scale-100');
-            } else {
-                userDropdownMenu.classList.add('hidden', 'opacity-0', 'scale-95');
-                userDropdownMenu.classList.remove('opacity-100', 'scale-100');
-            }
-        });
-
-        // Optional: Close dropdown when clicking outside
-        document.addEventListener('click', (event) => {
-            if (!userProfileButton.contains(event.target) && !userDropdownMenu.contains(event.target)) {
-                userDropdownMenu.classList.add('hidden', 'opacity-0', 'scale-95');
-                userDropdownMenu.classList.remove('opacity-100', 'scale-100');
-            }
-        });
+  if (userProfileButton && userDropdownMenu && userProfileDropdown) {
+    userProfileButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (!isDropdownOpen) {
+        userDropdownMenu.classList.remove('hidden');
+        setTimeout(() => {
+          userDropdownMenu.classList.remove('opacity-0', '-translate-y-2');
+        }, 50);
+      } else {
+        userDropdownMenu.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => {
+          userDropdownMenu.classList.add('hidden');
+        }, 200);
+      }
+      isDropdownOpen = !isDropdownOpen;
     });
+
+    document.addEventListener('click', function(e) {
+      if (!userProfileDropdown.contains(e.target) && isDropdownOpen) {
+        userDropdownMenu.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => {
+          userDropdownMenu.classList.add('hidden');
+        }, 200);
+        isDropdownOpen = false;
+      }
+    });
+  }
+});
 </script>

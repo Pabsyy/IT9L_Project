@@ -1,6 +1,6 @@
-<aside class="sidebar w-56 bg-white shadow-md flex-shrink-0">
+<aside class="sidebar fixed h-screen overflow-y-auto w-56 bg-white shadow-md flex-shrink-0">
     <div class="p-4 flex items-center justify-center space-x-2">
-        <img src="{{ asset('images/Logo2.png') }}" alt="Logo 1" class="h-10">
+        <img src="{{ asset('images/Logo2.png') }}" alt="Logo 1" class="h-15">
     </div>
     <div class="mt-6">
         <ul>
@@ -59,20 +59,27 @@ body {
 }
 .sidebar {
     transition: all 0.3s ease;
-    border: 1px solid #e2e8f0; /* Added outline */
+    background-color: #6366F1;  /* Indigo-500 - lighter than previous */
 }
 .sidebar-item {
     transition: all 0.2s ease;
 }
 .sidebar-item:hover {
-    background-color: rgba(99, 102, 241, 0.1); /* indigo-500 */
+    background-color: #A5B4FC;  /* Indigo-300 - lighter hover state */
+    color: #1F2937;
 }
 .sidebar-item.active {
-    background-color: rgba(99, 102, 241, 0.15); /* indigo-500 */
-    border-left: 3px solid #6366F1; /* indigo-500 */
+    background-color: #4F46E5;  /* Previous primary color now as active state */
+    border-left: 3px solid #C7D2FE;  /* Indigo-200 - lighter border */
 }
-/* Override Tailwind's text-primary if needed */
+/* Text colors */
+.sidebar a {
+    color: #F3F4F6;
+}
+.sidebar .text-gray-700 {
+    color: #F3F4F6;
+}
 .text-primary {
-    color: #6366F1 !important; /* indigo-500 */
+    color: #fff !important;
 }
 </style>
