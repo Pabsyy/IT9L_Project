@@ -44,19 +44,32 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sales_transaction_items', function (Blueprint $table) {
-            if (Schema::hasColumn('sales_transaction_items', 'transaction_id')) {
-                try {
-                    $table->dropForeign('fk_sales_items_transaction');
-                } catch (\Exception $e) {
-                    // Foreign key may not exist, ignore the error
+            try {
+                if (Schema::hasColumn('sales_transaction_items', 'product_id')) {
+                    $table->dropForeign('fk_sales_items_product');
                 }
+            } catch (\Exception $e) {
+                // Foreign key may not exist, ignore the error
             }
-            $table->dropForeign('fk_sales_items_product');
         });
 
         Schema::table('sales_transactions', function (Blueprint $table) {
-            $table->dropForeign('fk_sales_transactions_user');
+            try {
+                $table->dropForeign('fk_sales_transactions_user');
+            } catch (\Exception $e) {
+                // Foreign key may not exist, ignore the error
+            }
         });
+
+        try {
+            Schema::table('sales_transaction_items', function (Blueprint $table) {
+                if (Schema::hasColumn('sales_transaction_items', 'transaction_id')) {
+                    $table->dropForeign('fk_sales_items_transaction');
+                }
+            });
+        } catch (\Exception $e) {
+            // Foreign key may not exist, ignore the error
+        }
 
         Schema::dropIfExists('sales_transaction_items');
         Schema::dropIfExists('sales_transactions');
