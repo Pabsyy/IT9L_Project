@@ -17,7 +17,7 @@ class OrdersController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('id', 'LIKE', "%{$search}%")
+                $q->where('order_id', 'LIKE', "%{$search}%")
                   ->orWhere('customer_name', 'LIKE', "%{$search}%")
                   ->orWhere('customer_email', 'LIKE', "%{$search}%");
             });
@@ -61,7 +61,8 @@ class OrdersController extends Controller
 
     public function create()
     {
-        return view('orders.create');
+        $products = Product::all(['id', 'name', 'price']); // Add this line to get products
+        return view('orders.create', compact('products'));
     }
 
     public function store(Request $request)

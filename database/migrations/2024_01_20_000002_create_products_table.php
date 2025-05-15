@@ -19,6 +19,8 @@ return new class extends Migration
             $table->integer('sales')->unsigned()->default(0);  // Total units sold
             $table->string('category', 100)->nullable();
             $table->string('brand', 100)->nullable();
+            $table->boolean('featured')->default(false);
+            $table->string('image_url')->nullable();
             $table->timestamps();
         });
     }

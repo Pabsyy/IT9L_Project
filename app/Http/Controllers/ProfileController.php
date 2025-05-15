@@ -61,7 +61,8 @@ class ProfileController extends Controller
 
         $user->update($validated);
 
-        return redirect()->route('profile.edit')->with('success', 'Profile updated successfully.');
+        session()->flash('success', 'Profile information has been updated successfully.');
+        return redirect()->route('profile.edit');
     }
 
     /**

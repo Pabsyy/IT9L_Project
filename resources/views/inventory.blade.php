@@ -95,36 +95,54 @@
                 @forelse ($products as $product)
                 <div class="bg-white rounded shadow-sm overflow-hidden product-card group">
                     <div class="relative">
-                        <img src="{{ asset($product->Image) }}" alt="{{ $product->ProductName }}" class="w-full h-48 object-cover object-top">
+                        <img src="{{ $product->image_url ? $product->image_url : asset('images/no-image.png') }}" 
+                             alt="{{ $product->name }}" 
+                             class="w-full h-48 object-cover object-top">
                         <div class="action-buttons absolute top-2 right-2 flex space-x-1">
-                            <button class="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-primary whitespace-nowrap !rounded-button edit-btn" onclick="openEditModal({{ json_encode($product) }})">
+                            <button class="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-primary whitespace-nowrap !rounded-button edit-btn" 
+                                onclick="openEditModal({{ $product }})">
                                 <i class="ri-edit-line"></i>
                             </button>
-                            <form id="deleteForm" method="POST" action="{{ route('products.destroy', ['product' => $product->ProductID]) }}" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                            <form id="deleteForm{{ $product->id }}" method="POST" action="/products/{{ $product->id }}" onsubmit="return confirm('Are you sure you want to delete this product?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" onclick="openDeleteModal({{ $product->ProductID }})" class="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-red-500 whitespace-nowrap !rounded-button delete-btn">
+                                <button type="button" onclick="openDeleteModal({{ $product->id }})" class="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-gray-600 hover:text-red-500 whitespace-nowrap !rounded-button delete-btn">
                                     <i class="ri-delete-bin-line"></i>
                                 </button>
                             </form>
                         </div>
                     </div>
                     <div class="p-4">
-                        <h3 class="font-medium text-gray-800 mb-1">{{ $product->ProductName }}</h3>
-                        <div class="flex items-center text-sm text-green-600 mb-2">
-                            <div class="w-4 h-4 flex items-center justify-center mr-1">
-                                <i class="ri-checkbox-circle-fill"></i>
-                            </div>
-                            <span>In Stock ({{ $product->stock }})</span>
+                        <h3 class="font-medium text-gray-800 mb-1 truncate" title="{{ $product->name }}">{{ $product->name }}</h3>
+                        <div class="flex items-center text-sm mb-2">
+                            @if($product->stock > 10)
+                                <div class="flex items-center text-green-600">
+                                    <div class="w-4 h-4 flex items-center justify-center mr-1">
+                                        <i class="ri-checkbox-circle-fill"></i>
+                                    </div>
+                                    <span>In Stock ({{ $product->stock }})</span>
+                                </div>
+                            @elseif($product->stock > 0)
+                                <div class="flex items-center text-yellow-600">
+                                    <div class="w-4 h-4 flex items-center justify-center mr-1">
+                                        <i class="ri-error-warning-fill"></i>
+                                    </div>
+                                    <span>Low Stock ({{ $product->stock }})</span>
+                                </div>
+                            @else
+                                <div class="flex items-center text-red-600">
+                                    <div class="w-4 h-4 flex items-center justify-center mr-1">
+                                        <i class="ri-close-circle-fill"></i>
+                                    </div>
+                                    <span>Out of Stock</span>
+                                </div>
+                            @endif
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-700 font-medium">₱{{ number_format($product->Price, 2) }}</span>
+                            <span class="text-gray-700 font-medium">₱{{ number_format($product->price, 2, '.', ',') }}</span>
                             <div class="flex space-x-1">
                                 <button class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center text-gray-600 hover:bg-gray-200 whitespace-nowrap !rounded-button">
                                     <i class="ri-eye-line"></i>
-                                </button>
-                                <button class="w-7 h-7 bg-gray-100 rounded flex items-center justify-center text-gray-600 hover:bg-gray-200 whitespace-nowrap !rounded-button">
-                                    <i class="ri-drag-move-line"></i>
                                 </button>
                             </div>
                         </div>
@@ -288,7 +306,7 @@
 <!-- Edit Product Modal (Hidden by default) -->
 <div id="editModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
     <div class="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-auto">
-        <form id="editForm" method="POST" action="">
+        <form id="editForm" method="POST" action="" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             <div class="p-6 border-b border-gray-200 flex justify-between items-center">
@@ -303,17 +321,17 @@
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-                        <input id="editProductName" name="ProductName" type="text" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                        <input id="editProductName" name="ProductName" type="text" class="w-full border border-gray-300 rounded p-2" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-                        <input id="editSKU" name="SKU" type="text" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                        <input id="editSKU" name="SKU" type="text" class="w-full border border-gray-300 rounded p-2" required>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                        <select id="editCategory" name="Category" class="w-full border border-gray-300 rounded p-2 custom-select pr-8 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                        <select id="editCategory" name="Category" class="w-full border border-gray-300 rounded p-2 custom-select pr-8" required>
                             <option value="wipers">Wipers</option>
                             <option value="filters">Filters</option>
                             <option value="oils">Oils & Fluids</option>
@@ -323,7 +341,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-                        <select id="editBrand" name="Brand" class="w-full border border-gray-300 rounded p-2 custom-select pr-8 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                        <select id="editBrand" name="Brand" class="w-full border border-gray-300 rounded p-2 custom-select pr-8" required>
                             <option value="bosch">Bosch</option>
                             <option value="toyota">Toyota</option>
                             <option value="shell">Shell</option>
@@ -335,24 +353,24 @@
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Price (₱)</label>
-                        <input id="editPrice" name="Price" type="number" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                        <input id="editPrice" name="Price" type="number" step="0.01" class="w-full border border-gray-300 rounded p-2" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
-                        <input id="editStock" name="stock" type="number" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                        <input id="editStock" name="Quantity" type="number" class="w-full border border-gray-300 rounded p-2" required>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea id="editDescription" name="Description" rows="3" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"></textarea>
+                    <textarea id="editDescription" name="Description" rows="3" class="w-full border border-gray-300 rounded p-2" required></textarea>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
-                    <input id="editImage" name="Image" type="file" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary">
+                    <input id="editImage" name="Image" type="file" class="w-full border border-gray-300 rounded p-2" accept="image/*">
                 </div>
                 <div class="flex items-center">
-                    <input id="editFeatured" name="Featured" type="checkbox" class="custom-checkbox">
-                    <label for="editFeatured" class="ml-2 text-sm text-gray-700">Featured product</label>
+                    <input id="editFeatured" name="Featured" type="checkbox" class="custom-checkbox" value="1">
+                    <label class="ml-2 text-sm text-gray-700">Featured product</label>
                 </div>
             </div>
             <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
@@ -384,11 +402,6 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        let draggedItem = null;
-        let dragOverItem = null;
-
-        const productsGrid = document.querySelector('.grid');
-        const productCards = document.querySelectorAll('.product-card');
         const deleteModal = document.getElementById('deleteModal');
         const confirmDeleteBtn = document.getElementById('confirmDelete');
         const cancelDeleteBtn = document.getElementById('cancelDelete');
@@ -450,50 +463,6 @@
             deleteForm.submit();
         });
 
-        // DRAG & DROP
-        productCards.forEach(card => {
-            const dragBtn = card.querySelector('.ri-drag-move-line');
-
-            dragBtn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                draggedItem = card;
-                card.classList.add('dragging');
-
-                const onMouseMove = (e) => {
-                    const afterElement = getDragAfterElement(productsGrid, e.clientY);
-                    if (afterElement == null) {
-                        productsGrid.appendChild(draggedItem);
-                    } else {
-                        productsGrid.insertBefore(draggedItem, afterElement);
-                    }
-                };
-
-                const onMouseUp = () => {
-                    card.classList.remove('dragging');
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-                    draggedItem = null;
-                };
-
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            });
-        });
-
-        function getDragAfterElement(container, y) {
-            const draggableElements = [...container.querySelectorAll('.product-card:not(.dragging)')];
-
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
-
         // Edit modal functionality
         const editModal = document.getElementById('editModal');
         const editForm = document.getElementById('editForm');
@@ -502,15 +471,15 @@
 
         window.openEditModal = function(product) {
             editModal.classList.remove('hidden');
-            editForm.action = `/products/${product.ProductID}`;
-            document.getElementById('editProductName').value = product.ProductName;
-            document.getElementById('editSKU').value = product.SKU;
-            document.getElementById('editCategory').value = product.Category;
-            document.getElementById('editBrand').value = product.Brand;
-            document.getElementById('editPrice').value = product.Price;
+            editForm.action = `/products/${product.id}`;
+            document.getElementById('editProductName').value = product.name;
+            document.getElementById('editSKU').value = product.sku;
+            document.getElementById('editCategory').value = product.category;
+            document.getElementById('editBrand').value = product.brand;
+            document.getElementById('editPrice').value = parseFloat(product.price).toFixed(2);
             document.getElementById('editStock').value = product.stock;
-            document.getElementById('editDescription').value = product.Description;
-            document.getElementById('editFeatured').checked = product.Featured;
+            document.getElementById('editDescription').value = product.description;
+            document.getElementById('editFeatured').checked = Boolean(product.featured);
         };
 
         cancelEdit.addEventListener('click', () => {

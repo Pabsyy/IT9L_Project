@@ -21,41 +21,44 @@ class ProductController extends Controller
     // Method to handle storing a new product
     public function store(Request $request)
     {
-        // Validate the request data
         $validatedData = $request->validate([
             'ProductName' => 'required|string|max:255',
-            'SKU' => 'nullable|string|max:255|unique:products,SKU', // Updated table name
+            'SKU' => 'nullable|string|max:255|unique:products,sku',
             'Category' => 'required|string|max:255',
-            'Brand' => 'required|string|max:255', // Made Brand required as per form
-            'stock' => 'required|integer|min:0', // Changed from Quantity
+            'Brand' => 'required|string|max:255',
+            'Quantity' => 'required|integer|min:0',
             'Price' => 'required|numeric|min:0',
-            'Description' => 'required|string', // Made Description required as per form
+            'Description' => 'required|string',
             'Image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'Featured' => 'nullable|boolean', // Added Featured field
+            'Featured' => 'nullable|boolean',
         ]);
 
-        // Handle image upload if provided
+        $product = new Product();
+        $product->name = $validatedData['ProductName'];
+        $product->sku = $validatedData['SKU'];
+        $product->category = $validatedData['Category'];
+        $product->brand = $validatedData['Brand'];
+        $product->stock = $validatedData['Quantity'];
+        $product->price = $validatedData['Price'];
+        $product->description = $validatedData['Description'];
+        $product->featured = $request->has('Featured') ? 1 : 0;
+
         if ($request->hasFile('Image')) {
-            // Store in storage/app/public/products
-            $path = $request->file('Image')->store('products', 'public');
-            // The path saved in DB will be 'products/filename.ext'
-            // Access it via asset('storage/' . $path) in views
-            $validatedData['Image'] = $path;
-        } else {
-            // Ensure 'Image' is null if not provided, to avoid issues if the column doesn't have a default
-            $validatedData['Image'] = null;
+            $image = $request->file('Image');
+            $imageName = $image->getClientOriginalName();
+
+            // Check if the image already exists
+            if (file_exists(public_path('storage/products/' . $imageName))) {
+                return redirect()->back()->with('error', 'An image with that name already exists.');
+            }
+
+            $path = $image->storeAs('products', $imageName, 'public');
+            $product->image_url = $path;
         }
 
-        // Set 'Featured' to 0 if not present in the request (checkbox not ticked)
-        $validatedData['Featured'] = $request->has('Featured') ? 1 : 0;
-
-        // Create the product using the validated data
-        Product::create($validatedData);
-
-        // Redirect back to the inventory page with a success message
+        $product->save();
         return redirect()->route('inventory')->with('success', 'Product added successfully.');
     }
-
 
     public function categories()
     {
@@ -71,41 +74,41 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         $product = Product::findOrFail($id);
-
-        // Validate the request
-        $request->validate([
-            'ProductName' => 'required|string|max:255',
-            'SKU' => 'required|string|max:255|unique:products,SKU,' . $id . ',ProductID', // Updated table name
-            'Category' => 'required|string|max:255',
-            'Brand' => 'required|string|max:255', // Added Brand validation
-            'stock' => 'required|integer|min:0', // Changed from Quantity
+        
+        $validatedData = $request->validate([
+            'ProductName' => 'required|string|max:100',
+            'SKU' => 'required|string|max:50|unique:products,sku,'.$id,
+            'Category' => 'required|string|max:100',
+            'Brand' => 'required|string|max:100',
             'Price' => 'required|numeric|min:0',
+            'Quantity' => 'required|integer|min:0',
             'Description' => 'nullable|string',
-            'Image' => 'nullable|image|max:2048',
-            'Featured' => 'nullable|boolean', // Added Featured validation
+            'Image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'Featured' => 'nullable|boolean'
         ]);
 
-        // Prepare data for update
-        $updateData = $request->only(['ProductName', 'SKU', 'Category', 'Brand', 'stock', 'Price', 'Description']);
-        $updateData['Featured'] = $request->has('Featured') ? 1 : 0; // Handle Featured checkbox
+        // Map the form field names to database column names
+        $updateData = [
+            'name' => $validatedData['ProductName'],
+            'sku' => $validatedData['SKU'],
+            'category' => $validatedData['Category'],
+            'brand' => $validatedData['Brand'],
+            'price' => $validatedData['Price'],
+            'stock' => $validatedData['Quantity'],
+            'description' => $validatedData['Description'],
+            'featured' => $request->has('Featured') ? 1 : 0
+        ];
 
-        // Update product details
-        $product->update($updateData);
-
-        // Handle image upload if provided
+        // Handle image upload if a new image is provided
         if ($request->hasFile('Image')) {
-            $path = $request->file('Image')->store('products', 'public');
-            $product->Image = '/storage/' . $path;
-            // Update the image path in the database
-            // The path saved in DB will be 'products/filename.ext'
-            // Access it via asset('storage/' . $path) in views
-            $product->Image = $path;
-            $product->save();
+            // Store image in public/images/products directory
+            $path = $request->file('Image')->store('products', 'public_images');
+            $updateData['image_url'] = 'images/' . $path;
         }
 
-        // Redirect back to the inventory page with a success message
+        $product->update($updateData);
+
         return redirect()->route('inventory')->with('success', 'Product updated successfully.');
-        // return response()->json(['message' => 'Product updated successfully!']); // Changed from JSON response
     }
 
     /**
@@ -114,29 +117,28 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         // Check if the product exists in any cart
-        $cartItemExists = DB::table('cartitem')->where('ProductID', $product->ProductID)->exists();
+        $cartItemExists = DB::table('cart_items')->where('product_id', $product->id)->exists();
 
         if ($cartItemExists) {
             return redirect()->route('inventory')->with('error', 'This product cannot be deleted because it is currently in a cart.');
         }
 
         // Check if the product exists in any sales transaction
-        $salesTransactionItemExists = DB::table('salestransactionitem')->where('ProductID', $product->ProductID)->exists();
+        $salesTransactionItemExists = DB::table('sales_transaction_items')->where('product_id', $product->id)->exists();
 
         if ($salesTransactionItemExists) {
             return redirect()->route('inventory')->with('error', 'This product cannot be deleted because it is part of a sales transaction.');
         }
 
-        // Delete related records in purchaseorderitem table
-        DB::table('purchaseorderitem')->where('ProductID', $product->ProductID)->delete();
+        // Delete related records in purchase order items table
+        DB::table('purchase_order_items')->where('product_id', $product->id)->delete();
 
-        // Delete related records in cartitem table
-        DB::table('cartitem')->where('ProductID', $product->ProductID)->delete();
+        // Delete related records in cart items table
+        DB::table('cart_items')->where('product_id', $product->id)->delete();
 
         // Delete the product
         $product->delete();
 
-        // Redirect back to the inventory page with a success message
         return redirect()->route('inventory')->with('success', 'Product deleted successfully.');
     }
 }

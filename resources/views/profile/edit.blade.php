@@ -72,9 +72,17 @@
             <div class="p-6">
                 <!-- Personal Information Tab -->
                 <div id="personal-info" class="tab-content">
+                    @if(session('success'))
+                        <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                            <span class="block sm:inline">{{ session('success') }}</span>
+                            <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none'">
+                                <i class="ri-close-line"></i>
+                            </button>
+                        </div>
+                    @endif
                     <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
                         @csrf
-                        @method('PUT')
+                        @method('patch')
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <div class="mb-4">

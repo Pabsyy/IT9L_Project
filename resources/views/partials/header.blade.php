@@ -29,12 +29,7 @@
           <div class="w-5 h-5 flex items-center justify-center mr-3">
             <i class="ri-settings-3-line"></i>
           </div>
-          <span>Account Settings</span>
-        </a>
-        <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">
-          <div class="w-5 h-5 flex items-center justify-center mr-3">
-            <i class="ri-equalizer-line"></i>
-          </div>
+
           <span>Preferences</span>
         </a>
         <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">

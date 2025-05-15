@@ -10,6 +10,9 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id(); // Auto-incrementing primary key
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); // Foreign key to users table
+            $table->string('customer_name');
+            $table->string('customer_email');
             $table->enum('status', ['pending', 'paid', 'shipped', 'cancelled'])->default('pending');
             $table->decimal('subtotal', 10, 2);
             $table->decimal('tax', 10, 2)->nullable();
