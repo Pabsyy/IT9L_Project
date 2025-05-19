@@ -1,0 +1,108 @@
+/* Ensure Remixicon base class is defined if not globally available */
+/* :where([class^="ri-"])::before { content: "\f3c2"; } */ /* Commented out as Remixicon link should handle this */
+
+.product-card:hover .action-buttons {
+  opacity: 1;
+}
+.action-buttons {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.dragging {
+  opacity: 0.7;
+  border: 2px dashed #5b5fc7;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 16px 24px;
+  background: #1f2937;
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transform: translateY(100%);
+  opacity: 0;
+  transition: all 0.3s ease-in-out;
+  z-index: 100; /* Ensure toast is above other elements */
+}
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+.toast.toast-error {
+  background-color: #dc2626; /* Red 600 */
+}
+.toast.toast-success {
+  background-color: #16a34a; /* Green 600 */
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.custom-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+.custom-checkbox:checked {
+  background-color: #5b5fc7;
+  border-color: #5b5fc7;
+}
+.custom-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.custom-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 5px;
+  outline: none;
+}
+.custom-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #5b5fc7;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.custom-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #5b5fc7;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+.custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1rem;
+}
+/* Ensure modals are visible when not hidden */
+#editModal.flex, #deleteModal.flex {
+    display: flex;
+}

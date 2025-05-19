@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .btn {
+        @apply px-4 py-2 rounded transition-all duration-150 font-medium text-sm;
+    }
+    .btn-primary {
+        @apply bg-primary text-white hover:bg-primary/90;
+    }
+    .btn-secondary {
+        @apply bg-white border border-gray-300 text-gray-700 hover:bg-gray-50;
+    }
+    .btn-danger {
+        @apply bg-red-600 text-white hover:bg-red-700;
+    }
+    .custom-checkbox {
+        @apply w-[18px] h-[18px] border-2 border-gray-300 rounded cursor-pointer relative inline-block;
+    }
+    .custom-checkbox.checked {
+        @apply bg-primary border-primary;
+    }
+    .custom-switch {
+        @apply relative inline-block w-11 h-6;
+    }
+    .switch-slider {
+        @apply absolute cursor-pointer inset-0 bg-gray-300 transition-all duration-300 rounded-full;
+    }
+    .switch-slider:before {
+        @apply absolute content-[''] h-5 w-5 left-0.5 bottom-0.5 bg-white transition-all duration-300 rounded-full;
+    }
+    input:checked + .switch-slider {
+        @apply bg-primary;
+    }
+    input:checked + .switch-slider:before {
+        @apply translate-x-5;
+    }
+}
+
+.fixed-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: inherit;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid #e2e8f0; /* Keep the border */
+}
+
+/* Remove number input spinners */
+@layer utilities {
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+}
