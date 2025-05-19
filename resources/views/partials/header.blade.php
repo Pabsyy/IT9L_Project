@@ -1,5 +1,5 @@
 <!-- Header HTML Structure -->
-<header class="bg-white shadow-sm h-16 flex items-center justify-between px-6">
+<header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 relative z-50">
   <h1 class="text-2xl font-semibold text-gray-800">{{ $title }}</h1>
   <div class="flex items-center space-x-4">
     <div class="relative">
@@ -10,42 +10,30 @@
     </div>
     <div class="relative" id="userProfileDropdown">
       <div class="flex items-center cursor-pointer" id="userProfileButton">
-        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-          <i class="ri-user-line text-gray-600"></i>
+        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-2 overflow-hidden">
+          @if(Auth::user()->profile_picture_url)
+            <img src="{{ asset('images/' . Auth::user()->profile_picture_url) }}" alt="{{ Auth::user()->username }}" class="w-full h-full object-cover">
+          @else
+            <i class="ri-user-line text-gray-600"></i>
+          @endif
         </div>
         <span class="font-medium text-gray-700">{{ Auth::user()->username }}</span>
         <div class="w-5 h-5 flex items-center justify-center ml-1">
           <i class="ri-arrow-down-s-line"></i>
         </div>
       </div>
-      <div id="userDropdownMenu" class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 hidden opacity-0 transform -translate-y-2 transition-all duration-200">
+      <div id="userDropdownMenu" class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 hidden opacity-0 transform -translate-y-2 transition-all duration-200 z-[100]">
         <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-2 text-indigo-600 hover:bg-gray-50">
           <div class="w-5 h-5 flex items-center justify-center mr-3">
             <i class="ri-user-settings-line"></i>
           </div>
           <span>My Profile</span>
         </a>
-        <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">
-          <div class="w-5 h-5 flex items-center justify-center mr-3">
-            <i class="ri-settings-3-line"></i>
-          </div>
-
-          <span>Preferences</span>
-        </a>
-        <a href="#" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50">
-          <div class="w-5 h-5 flex items-center justify-center mr-3">
-            <i class="ri-question-line"></i>
-          </div>
-          <span>Help & Support</span>
-        </a>
         <div class="h-px bg-gray-200 my-2"></div>
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('customer.logout') }}">
             @csrf
-            <a href="{{ route('logout') }}" class="flex items-center px-4 py-2 text-red-600 hover:bg-gray-50" onclick="event.preventDefault(); this.closest('form').submit();">
-                <div class="w-5 h-5 flex items-center justify-center mr-3">
-                    <i class="ri-logout-box-line"></i>
-                </div>
-                <span>Logout</span>
+            <a href="{{ route('customer.logout') }}" class="flex items-center px-4 py-2 text-red-600 hover:bg-gray-50" onclick="event.preventDefault(); this.closest('form').submit();">
+                <i class="ri-logout-box-line mr-2"></i> Sign Out
             </a>
         </form>
       </div>

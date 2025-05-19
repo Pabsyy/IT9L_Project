@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 // Import the Request class
 use App\Models\Product;
 // Import the Product model
+use App\Models\Category;
+// Import the Category model
+use App\Models\Brand;
+// Import the Brand model
+use App\Models\Supplier;
+// Import the Supplier model
 use Illuminate\Support\Facades\Auth;
 // Import the Auth facade
 
@@ -23,14 +29,25 @@ class InventoryController extends Controller
         // Get the username
         $username = $user->username;
 
+        // Get categories, brands and suppliers for filters
+        $categories = Category::orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
+        $suppliers = Supplier::where('status', 'active')->orderBy('name')->get();
+
         $query = Product::query();
 
         if ($request->filled('category')) {
-            $query->where('Category', $request->category);
+            $category = Category::where('slug', $request->category)->first();
+            if ($category) {
+                $query->where('category_id', $category->id);
+            }
         }
 
         if ($request->filled('brand')) {
-            $query->where('Brand', $request->brand);
+            $brand = Brand::where('slug', $request->brand)->first();
+            if ($brand) {
+                $query->where('brand_id', $brand->id);
+            }
         }
 
         if ($request->filled('stock_status')) {
@@ -44,16 +61,43 @@ class InventoryController extends Controller
         }
 
         if ($request->filled('price_min')) {
-            $query->where('Price', '>=', $request->price_min);
+            $query->where('price', '>=', $request->price_min);
         }
 
         if ($request->filled('price_max')) {
-            $query->where('Price', '<=', $request->price_max);
+            $query->where('price', '<=', $request->price_max);
+        }
+
+        // Calculate inventory metrics
+        try {
+            $inventoryMetrics = [
+                'total_value' => Product::sum(\DB::raw('price * stock')) ?? 0,
+                'low_stock' => Product::whereBetween('stock', [1, 10])->count() ?? 0,
+                'out_of_stock' => Product::where('stock', 0)->count() ?? 0,
+                'total_products' => Product::count() ?? 0
+            ];
+        } catch (\Exception $e) {
+            // Set default values if calculation fails
+            $inventoryMetrics = [
+                'total_value' => 0,
+                'low_stock' => 0,
+                'out_of_stock' => 0,
+                'total_products' => 0
+            ];
+            \Log::error('Error calculating inventory metrics: ' . $e->getMessage());
         }
 
         $products = $query->paginate(8);
 
-        return view('inventory', compact('products', 'userInitials', 'username'));
+        return view('admin.inventory', compact(
+            'products',
+            'categories',
+            'brands',
+            'suppliers',
+            'userInitials',
+            'username',
+            'inventoryMetrics'
+        ));
         // Return the inventory view with the products
     }
 }

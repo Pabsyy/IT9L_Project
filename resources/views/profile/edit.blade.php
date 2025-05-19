@@ -36,11 +36,11 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
-<button onclick="window.location.href='{{ route('suppliers') }}'" class="flex items-center px-3 py-1.5 text-sm text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 cursor-pointer">
+<button onclick="window.location.href='{{ route('admin.dashboard') }}'" class="flex items-center px-3 py-1.5 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">
                             <div class="w-4 h-4 flex items-center justify-center mr-1.5">
-                                <i class="ri-user-star-line"></i>
+                                <i class="ri-dashboard-line"></i>
                             </div>
-                            <span>Manage Suppliers</span>
+                            <span>Back to Dashboard</span>
                         </button>
                     </div>
                 </div>
@@ -50,7 +50,7 @@
         <div class="bg-white rounded-lg shadow-sm mb-6">
             <div class="border-b border-gray-200">
                 <nav class="flex overflow-x-auto" aria-label="Tabs">
-<button class="tab-button text-primary border-b-2 border-primary px-6 py-4 text-sm font-medium cursor-pointer" data-tab="personal-info">
+<button class="tab-button text-indigo-600 border-b-2 border-indigo-600 px-6 py-4 text-sm font-medium cursor-pointer" data-tab="personal-info">
                         Personal Information
                     </button>
                     <button class="tab-button text-gray-500 hover:text-gray-700 hover:border-gray-300 px-6 py-4 text-sm font-medium border-b-2 border-transparent cursor-pointer" data-tab="account-settings">
@@ -60,11 +60,11 @@
                         Activity History
                     </button>
                     {{-- Removed tab-button class from this button as it uses onclick --}}
-                    <button onclick="window.location.href='{{ route('suppliers') }}'" class="text-gray-500 hover:text-gray-700 hover:border-gray-300 px-6 py-4 text-sm font-medium border-b-2 border-transparent flex items-center cursor-pointer">
+                    <button onclick="window.location.href='{{ route('admin.dashboard') }}'" class="text-gray-500 hover:text-gray-700 hover:border-gray-300 px-6 py-4 text-sm font-medium border-b-2 border-transparent flex items-center cursor-pointer">
                         <div class="w-4 h-4 flex items-center justify-center mr-1.5">
                             <i class="ri-arrow-left-line"></i>
                         </div>
-                        <span>Back to Suppliers</span>
+                        <span>Back to Dashboard</span>
                     </button>
                 </nav>
             </div>
@@ -144,10 +144,10 @@
                             </div>
                         </div>
                         <div class="mt-6 flex justify-end">
-                            <button type="button" class="px-4 py-2 bg-white border border-gray-300 rounded-button text-gray-700 mr-3 hover:bg-gray-50 whitespace-nowrap !rounded-button">
+                            <button type="button" class="btn btn-secondary mr-3">
                                 Cancel
                             </button>
-                            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button hover:bg-primary/90 whitespace-nowrap !rounded-button">
+                            <button type="submit" class="btn btn-primary">
                                 Save Changes
                             </button>
                         </div>
@@ -160,23 +160,52 @@
                         <div>
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
                             <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                                <form method="POST" action="{{ route('profile.password') }}">
+                                @if(session('status'))
+                                    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative alert-message" role="alert">
+                                        <span class="block sm:inline">Password updated successfully!</span>
+                                        <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
+                                            <i class="ri-close-line"></i>
+                                        </button>
+                                    </div>
+                                @endif
+                                @if($errors->updatePassword->any())
+                                    <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative alert-message" role="alert">
+                                        <ul class="list-disc list-inside">
+                                            @foreach($errors->updatePassword->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+                                <form id="password-form" method="POST" action="{{ route('profile.password') }}" onsubmit="return false;">
                                     @csrf
                                     @method('PUT')
                                     <div class="mb-4">
                                         <label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                                        <input type="password" id="currentPassword" name="current_password" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:outline-none">
+                                        <input type="password" id="currentPassword" name="current_password" 
+                                            class="w-full px-3 py-2 border {{ $errors->updatePassword->has('current_password') ? 'border-red-500' : 'border-gray-300' }} rounded focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:outline-none">
+                                        @if($errors->updatePassword->has('current_password'))
+                                            <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('current_password') }}</p>
+                                        @endif
                                     </div>
                                     <div class="mb-4">
                                         <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                                        <input type="password" id="newPassword" name="password" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:outline-none">
+                                        <input type="password" id="newPassword" name="password" 
+                                            class="w-full px-3 py-2 border {{ $errors->updatePassword->has('password') ? 'border-red-500' : 'border-gray-300' }} rounded focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:outline-none">
+                                        @if($errors->updatePassword->has('password'))
+                                            <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('password') }}</p>
+                                        @endif
                                     </div>
                                     <div class="mb-4">
                                         <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                                        <input type="password" id="confirmPassword" name="password_confirmation" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:outline-none">
+                                        <input type="password" id="confirmPassword" name="password_confirmation" 
+                                            class="w-full px-3 py-2 border {{ $errors->updatePassword->has('password_confirmation') ? 'border-red-500' : 'border-gray-300' }} rounded focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:outline-none">
+                                        @if($errors->updatePassword->has('password_confirmation'))
+                                            <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('password_confirmation') }}</p>
+                                        @endif
                                     </div>
                                     <div class="flex justify-end">
-                                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-button hover:bg-primary/90 whitespace-nowrap !rounded-button">
+                                        <button type="button" onclick="confirmPasswordChange()" class="btn btn-primary">
                                             Update Password
                                         </button>
                                     </div>
@@ -291,11 +320,14 @@
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Delete Account</h3>
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <p class="text-sm text-gray-600 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
-                                <form method="POST" action="{{ route('profile.destroy') }}">
+                                <form id="delete-account-form" method="POST" action="{{ route('profile.destroy') }}" onsubmit="return false;">
                                     @csrf
                                     @method('DELETE')
-                                    <input type="password" name="password" placeholder="Confirm your password" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:outline-none mb-2">
-                                    <button type="submit" class="px-4 py-2 bg-white border border-red-300 text-red-600 rounded-button hover:bg-red-50 whitespace-nowrap !rounded-button">
+                                    <input type="password" id="deletion-password" name="password" placeholder="Confirm your password" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:ring-opacity-50 focus:outline-none mb-2">
+                                    @error('userDeletion.password')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                    <button type="button" onclick="confirmAccountDeletion()" class="btn btn-danger">
                                         Delete Account
                                     </button>
                                 </form>
@@ -365,151 +397,251 @@
 @push('styles')
     <style>
         :where([class^="ri-"])::before { content: ""; }
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-        .custom-checkbox {
-            position: relative;
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid #cbd5e1;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .custom-checkbox.checked {
-            background-color: #3b82f6;
-            border-color: #3b82f6;
-        }
-        .custom-checkbox.checked::after {
-            content: "";
-            position: absolute;
-            left: 5px;
-            top: 2px;
-            width: 6px;
-            height: 10px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-        .custom-switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-        .custom-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .switch-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #cbd5e1;
-            transition: .4s;
-            border-radius: 24px;
-        }
-        .switch-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .switch-slider {
-            background-color: #3b82f6;
-        }
-        input:checked + .switch-slider:before {
-            transform: translateX(20px);
-        }
         .profile-image-upload:hover .upload-overlay {
             opacity: 1;
         }
     </style>
-    @endpush
-    @push('scripts')
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabButtons = document.querySelectorAll('.tab-button[data-tab]');
-        const tabContents = document.querySelectorAll('.tab-content');
+@endpush
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button[data-tab]');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-        // Ensure only the first tab content is visible initially
-        // (Relying on the 'hidden' class being present on others in HTML)
-        tabContents.forEach((content, index) => {
-            if (index !== 0) {
+    // Ensure only the first tab content is visible initially
+    // (Relying on the 'hidden' class being present on others in HTML)
+    tabContents.forEach((content, index) => {
+        if (index !== 0) {
+            content.classList.add('hidden');
+        } else {
+            content.classList.remove('hidden'); // Make sure first one is visible
+        }
+    });
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTabId = button.getAttribute('data-tab');
+
+            // Deactivate all buttons
+            tabButtons.forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'border-indigo-600');
+                btn.classList.add('text-gray-500', 'border-transparent');
+            });
+
+            // Hide all content
+            tabContents.forEach(content => {
                 content.classList.add('hidden');
+            });
+
+            // Activate the clicked button
+            button.classList.add('text-indigo-600', 'border-indigo-600');
+            button.classList.remove('text-gray-500', 'border-transparent');
+
+            // Show the target content
+            const targetContent = document.getElementById(targetTabId);
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
             } else {
-                content.classList.remove('hidden'); // Make sure first one is visible
+                console.error(`Tab content with ID '${targetTabId}' not found.`);
             }
         });
+    });
 
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetTabId = button.getAttribute('data-tab');
-
-                // Deactivate all buttons
-                tabButtons.forEach(btn => {
-                    btn.classList.remove('text-primary', 'border-primary');
-                    btn.classList.add('text-gray-500', 'border-transparent');
-                });
-
-                // Hide all content
-                tabContents.forEach(content => {
-                    content.classList.add('hidden');
-                });
-
-                // Activate the clicked button
-                button.classList.add('text-primary', 'border-primary');
-                button.classList.remove('text-gray-500', 'border-transparent');
-
-                // Show the target content
-                const targetContent = document.getElementById(targetTabId);
-                if (targetContent) {
-                    targetContent.classList.remove('hidden');
-                } else {
-                    console.error(`Tab content with ID '${targetTabId}' not found.`);
-                }
-            });
+    // --- Other scripts can be re-added here if needed ---
+    // Example: Profile image upload (if still required)
+    const profileImageUpload = document.querySelector('.profile-image-upload');
+    const profileImageInput = document.getElementById('profile-image-input');
+    if (profileImageUpload && profileImageInput) {
+        profileImageUpload.addEventListener('click', (e) => {
+            if (e.target !== profileImageInput) { // Avoid re-triggering
+                profileImageInput.click();
+            }
         });
+        // The onchange handler for form submission is directly on the input element in HTML
+    }
 
-        // --- Other scripts can be re-added here if needed ---
-        // Example: Profile image upload (if still required)
-        const profileImageUpload = document.querySelector('.profile-image-upload');
-        const profileImageInput = document.getElementById('profile-image-input');
-        if (profileImageUpload && profileImageInput) {
-            profileImageUpload.addEventListener('click', (e) => {
-                if (e.target !== profileImageInput) { // Avoid re-triggering
-                    profileImageInput.click();
-                }
-            });
-            // The onchange handler for form submission is directly on the input element in HTML
+    // Example: Custom checkbox (if still required)
+    const customCheckboxes = document.querySelectorAll('.custom-checkbox');
+    customCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('click', () => {
+            checkbox.classList.toggle('checked');
+            // Note: This only toggles appearance, actual form submission needs handling
+        });
+    });
+    // --- End of other scripts ---
+
+    // Password change confirmation overlay
+    window.confirmPasswordChange = function() {
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        // Clear any existing error messages
+        clearErrors();
+
+        // Client-side validation
+        let hasErrors = false;
+
+        if (!currentPassword) {
+            showFieldError('currentPassword', 'Current password is required.');
+            hasErrors = true;
         }
 
-        // Example: Custom checkbox (if still required)
-        const customCheckboxes = document.querySelectorAll('.custom-checkbox');
-        customCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('click', () => {
-                checkbox.classList.toggle('checked');
-                // Note: This only toggles appearance, actual form submission needs handling
-            });
-        });
-        // --- End of other scripts ---
+        if (!newPassword) {
+            showFieldError('newPassword', 'New password is required.');
+            hasErrors = true;
+        } else if (newPassword.length < 8) {
+            showFieldError('newPassword', 'New password must be at least 8 characters long.');
+            hasErrors = true;
+        }
 
+        if (!confirmPassword) {
+            showFieldError('confirmPassword', 'Please confirm your new password.');
+            hasErrors = true;
+        } else if (newPassword !== confirmPassword) {
+            showFieldError('confirmPassword', 'Password confirmation does not match.');
+            hasErrors = true;
+        }
+
+        if (newPassword === currentPassword) {
+            showFieldError('newPassword', 'New password must be different from current password.');
+            hasErrors = true;
+        }
+
+        if (hasErrors) {
+            return;
+        }
+
+        // Create and show confirmation overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        overlay.innerHTML = `
+            <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Password Change</h3>
+                <p class="text-gray-600 mb-6">Are you sure you want to change your password? You will need to use the new password for your next login.</p>
+                <div class="flex justify-end gap-4">
+                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200">
+                        Cancel
+                    </button>
+                    <button onclick="submitPasswordChange()" class="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700">
+                        Confirm Change
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    };
+
+    window.showFieldError = function(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.createElement('p');
+        errorDiv.className = 'mt-1 text-sm text-red-600 field-error';
+        errorDiv.textContent = message;
+        field.classList.add('border-red-500');
+        field.parentElement.appendChild(errorDiv);
+    };
+
+    window.clearErrors = function() {
+        // Remove all field-specific error messages
+        document.querySelectorAll('.field-error').forEach(error => error.remove());
+        // Reset all input borders
+        document.querySelectorAll('input[type="password"]').forEach(input => {
+            input.classList.remove('border-red-500');
+            input.classList.add('border-gray-300');
+        });
+    };
+
+    // Clear field-specific error when user starts typing
+    document.querySelectorAll('input[type="password"]').forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('border-red-500');
+            this.classList.add('border-gray-300');
+            const errorMessage = this.parentElement.querySelector('.field-error');
+            if (errorMessage) {
+                errorMessage.remove();
+            }
+        });
     });
-    </script>
-    @endpush
-    @endsection
+
+    window.submitPasswordChange = function() {
+        document.getElementById('password-form').onsubmit = null;
+        document.getElementById('password-form').submit();
+    };
+
+    // Auto-dismiss alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert-message');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            if (alert && alert.parentElement) {
+                alert.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => alert.remove(), 500);
+            }
+        }, 5000);
+    });
+
+    // Account deletion confirmation
+    window.confirmAccountDeletion = function() {
+        const password = document.getElementById('deletion-password').value;
+        
+        if (!password) {
+            showError('Please enter your password to confirm account deletion.');
+            return;
+        }
+
+        // Create and show confirmation overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        overlay.innerHTML = `
+            <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div class="flex items-center mb-4 text-red-600">
+                    <i class="ri-error-warning-line text-2xl mr-2"></i>
+                    <h3 class="text-lg font-medium text-red-600">Delete Account Permanently?</h3>
+                </div>
+                <div class="space-y-4">
+                    <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-red-700 font-medium mb-2">Warning: This action cannot be undone!</p>
+                        <ul class="text-sm text-red-600 list-disc list-inside space-y-1">
+                            <li>Your account will be permanently deleted</li>
+                            <li>All your data will be removed</li>
+                            <li>You will be logged out immediately</li>
+                            <li>You cannot recover this account</li>
+                        </ul>
+                    </div>
+                    <p class="text-gray-600">Please type "DELETE" below to confirm:</p>
+                    <input type="text" id="delete-confirmation" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 focus:outline-none" placeholder="Type DELETE to confirm">
+                </div>
+                <div class="flex justify-end gap-4 mt-6">
+                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200">
+                        Cancel
+                    </button>
+                    <button onclick="submitAccountDeletion()" id="confirm-delete-btn" class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 opacity-50 cursor-not-allowed" disabled>
+                        Permanently Delete Account
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Add event listener for the confirmation input
+        const deleteConfirmationInput = document.getElementById('delete-confirmation');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        
+        deleteConfirmationInput.addEventListener('input', function() {
+            if (this.value === 'DELETE') {
+                confirmDeleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                confirmDeleteBtn.removeAttribute('disabled');
+            } else {
+                confirmDeleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                confirmDeleteBtn.setAttribute('disabled', 'disabled');
+            }
+        });
+    };
+
+    window.submitAccountDeletion = function() {
+        document.getElementById('delete-account-form').onsubmit = null;
+        document.getElementById('delete-account-form').submit();
+    };
+});
+</script>
+@endpush
+@endsection

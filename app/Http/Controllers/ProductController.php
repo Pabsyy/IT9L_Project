@@ -1,144 +1,334 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\Brand;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    public function index()
-    {
-        $user = Auth::user(); // Get the authenticated user
-        $userInitials = strtoupper(substr($user->name, 0, 1)); // Get the first letter of the user's name
-        $username = $user->username;
+    protected $imageService;
 
-        $products = Product::paginate(10); // Example: Fetch products if needed for this view
-        return view('products.index', compact('products', 'userInitials', 'username')); // Ensure this view exists and adjust data as needed
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
     }
 
-    // Method to handle storing a new product
+    public function index(Request $request)
+    {
+        $query = Product::query();
+
+        // Apply category filters
+        if ($request->filled('categories')) {
+            $query->whereIn('category_id', $request->categories);
+        }
+
+        // Apply brand filters
+        if ($request->filled('brands')) {
+            $query->whereIn('brand_id', $request->brands);
+        }
+
+        // Apply price range filters
+        if ($request->filled('min_price')) {
+            $query->where('price', '>=', $request->min_price);
+        }
+        if ($request->filled('max_price')) {
+            $query->where('price', '<=', $request->max_price);
+        }
+
+        // Apply stock filter
+        if ($request->boolean('in_stock')) {
+            $query->where('stock', '>', 0);
+        }
+
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('category', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('brand', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Apply sorting
+        switch ($request->get('sort', 'newest')) {
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'popular':
+                $query->orderBy('sales', 'desc');
+                break;
+            case 'newest':
+            default:
+                $query->latest();
+                break;
+        }
+
+        // Get categories and brands for filters
+        $categories = Category::orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
+
+        // Get products with pagination
+        $products = $query->with(['category', 'brand'])->paginate(12)->withQueryString();
+
+        // If it's an AJAX request, return only the products partial view
+        if ($request->ajax()) {
+            return view('Customer.products.partials.products-grid', compact('products'));
+        }
+
+        // Return the full view for regular requests
+        return view('Customer.products.index', compact('products', 'categories', 'brands'));
+    }
+
+    public function show($id)
+    {
+        $product = Product::with(['category', 'brand', 'ratings'])->findOrFail($id);
+        return view('Customer.products.show', compact('product'));
+    }
+
+    public function byCategory($category)
+    {
+        // Find the category by slug
+        $category = Category::where('slug', $category)->firstOrFail();
+        
+        // Query products through the category relationship
+        $products = Product::where('category_id', $category->id)
+            ->with(['category', 'brand'])
+            ->paginate(12);
+
+        // Get categories for the filter sidebar
+        $categories = Category::orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
+
+        return view('Customer.products.index', compact('products', 'categories', 'brands', 'category'));
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+        
+        $products = Product::where('name', 'like', "%{$search}%")
+            ->orWhere('description', 'like', "%{$search}%")
+            ->orWhereHas('category', function($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->paginate(12);
+
+        // Get categories and brands for filters
+        $categories = Category::orderBy('name')->get();
+        $brands = Brand::orderBy('name')->get();
+
+        return view('Customer.views.products.product', compact('products', 'categories', 'brands'));
+    }
+
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'ProductName' => 'required|string|max:255',
-            'SKU' => 'nullable|string|max:255|unique:products,sku',
-            'Category' => 'required|string|max:255',
-            'Brand' => 'required|string|max:255',
-            'Quantity' => 'required|integer|min:0',
-            'Price' => 'required|numeric|min:0',
-            'Description' => 'required|string',
-            'Image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'Featured' => 'nullable|boolean',
+        // Validate the request
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'category_id' => $request->category_id === 'new' ? 'nullable' : 'required|exists:categories,id',
+            'brand_id' => $request->brand_id === 'new' ? 'nullable' : 'required|exists:brands,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'new_category' => $request->category_id === 'new' ? 'required|string|max:255' : 'nullable',
+            'new_brand' => $request->brand_id === 'new' ? 'required|string|max:255' : 'nullable',
+            'sku' => 'nullable|string|max:50|unique:products',
+            'featured' => 'boolean',
+            'main_image' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:5120',
+            'additional_images.*' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:5120'
         ]);
 
-        $product = new Product();
-        $product->name = $validatedData['ProductName'];
-        $product->sku = $validatedData['SKU'];
-        $product->category = $validatedData['Category'];
-        $product->brand = $validatedData['Brand'];
-        $product->stock = $validatedData['Quantity'];
-        $product->price = $validatedData['Price'];
-        $product->description = $validatedData['Description'];
-        $product->featured = $request->has('Featured') ? 1 : 0;
+        try {
+            DB::beginTransaction();
 
-        if ($request->hasFile('Image')) {
-            $image = $request->file('Image');
-            $imageName = $image->getClientOriginalName();
-
-            // Check if the image already exists
-            if (file_exists(public_path('storage/products/' . $imageName))) {
-                return redirect()->back()->with('error', 'An image with that name already exists.');
+            // Handle new category
+            $categoryId = $validated['category_id'];
+            if ($request->category_id === 'new' && $request->filled('new_category')) {
+                $category = Category::create([
+                    'name' => $request->new_category,
+                    'slug' => Str::slug($request->new_category)
+                ]);
+                $categoryId = $category->id;
             }
 
-            $path = $image->storeAs('products', $imageName, 'public');
-            $product->image_url = $path;
+            // Handle new brand
+            $brandId = $validated['brand_id'];
+            if ($request->brand_id === 'new' && $request->filled('new_brand')) {
+                $brand = Brand::create([
+                    'name' => $request->new_brand,
+                    'slug' => Str::slug($request->new_brand)
+                ]);
+                $brandId = $brand->id;
+            }
+
+            // Store main image
+            $mainImagePath = $this->imageService->storeProductImage($request->file('main_image'), 'main');
+
+            // Create product data array
+            $productData = [
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'price' => $validated['price'],
+                'stock' => $validated['stock'],
+                'category_id' => $categoryId,
+                'brand_id' => $brandId,
+                'supplier_id' => $validated['supplier_id'],
+                'sku' => $validated['sku'] ?? null,
+                'featured' => $validated['featured'] ?? false,
+                'main_image' => $mainImagePath,
+                'sales' => 0
+            ];
+
+            // Store additional images
+            if ($request->hasFile('additional_images')) {
+                foreach ($request->file('additional_images') as $index => $image) {
+                    if ($image && $index < 4) {
+                        $fieldName = 'image_' . ($index + 1);
+                        $productData[$fieldName] = $this->imageService->storeProductImage($image, "additional_{$index}");
+                    }
+                }
+            }
+
+            // Create the product
+            $product = Product::create($productData);
+
+            DB::commit();
+
+            return redirect()->route('admin.inventory')->with('success', 'Product created successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Product creation error: ' . $e->getMessage());
+
+            // Clean up any uploaded images
+            if (isset($mainImagePath)) {
+                $this->imageService->deleteProductImage($mainImagePath);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Error creating product: ' . $e->getMessage()]);
         }
-
-        $product->save();
-        return redirect()->route('inventory')->with('success', 'Product added successfully.');
     }
 
-    public function categories()
+    public function update(Request $request, Product $product)
     {
-        return view('products.categories'); // Ensure this view exists
-    }
-
-    public function edit($id)
-    {
-        $product = Product::findOrFail($id);
-        return view('products.edit', compact('product'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $product = Product::findOrFail($id);
-        
-        $validatedData = $request->validate([
-            'ProductName' => 'required|string|max:100',
-            'SKU' => 'required|string|max:50|unique:products,sku,'.$id,
-            'Category' => 'required|string|max:100',
-            'Brand' => 'required|string|max:100',
-            'Price' => 'required|numeric|min:0',
-            'Quantity' => 'required|integer|min:0',
-            'Description' => 'nullable|string',
-            'Image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'Featured' => 'nullable|boolean'
+        // Validate the request
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'required|exists:brands,id',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'sku' => 'nullable|string|max:50|unique:products,sku,' . $product->id,
+            'featured' => 'boolean',
+            'main_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:5120',
+            'additional_images.*' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:5120'
         ]);
 
-        // Map the form field names to database column names
-        $updateData = [
-            'name' => $validatedData['ProductName'],
-            'sku' => $validatedData['SKU'],
-            'category' => $validatedData['Category'],
-            'brand' => $validatedData['Brand'],
-            'price' => $validatedData['Price'],
-            'stock' => $validatedData['Quantity'],
-            'description' => $validatedData['Description'],
-            'featured' => $request->has('Featured') ? 1 : 0
-        ];
+        try {
+            DB::beginTransaction();
 
-        // Handle image upload if a new image is provided
-        if ($request->hasFile('Image')) {
-            // Store image in public/images/products directory
-            $path = $request->file('Image')->store('products', 'public_images');
-            $updateData['image_url'] = 'images/' . $path;
+            // Update product data array
+            $productData = [
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'price' => $validated['price'],
+                'category_id' => $validated['category_id'],
+                'brand_id' => $validated['brand_id'],
+                'supplier_id' => $validated['supplier_id'],
+                'sku' => $validated['sku'],
+                'featured' => $validated['featured'] ?? false
+            ];
+
+            // Handle main image update
+            if ($request->hasFile('main_image')) {
+                $productData['main_image'] = $this->imageService->updateProductImage(
+                    $request->file('main_image'),
+                    $product->main_image,
+                    'main'
+                );
+            }
+
+            // Handle additional images
+            if ($request->hasFile('additional_images')) {
+                foreach ($request->file('additional_images') as $index => $image) {
+                    if ($image && $index < 4) {
+                        $fieldName = 'image_' . ($index + 1);
+                        $productData[$fieldName] = $this->imageService->updateProductImage(
+                            $image,
+                            $product->$fieldName,
+                            "additional_{$index}"
+                        );
+                    }
+                }
+            }
+
+            // Update the product
+            $product->update($productData);
+
+            DB::commit();
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Product updated successfully',
+                    'product' => $product->fresh()->load(['category', 'brand', 'supplier'])
+                ]);
+            }
+
+            return redirect()->route('admin.inventory')->with('success', 'Product updated successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating product: ' . $e->getMessage());
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error updating product: ' . $e->getMessage()
+                ], 422);
+            }
+            
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Error updating product: ' . $e->getMessage()]);
         }
-
-        $product->update($updateData);
-
-        return redirect()->route('inventory')->with('success', 'Product updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Product $product)
     {
-        // Check if the product exists in any cart
-        $cartItemExists = DB::table('cart_items')->where('product_id', $product->id)->exists();
+        try {
+            // Delete the product image if it exists
+            if ($product->image_url) {
+                Storage::disk('public_images')->delete($product->image_url);
+            }
 
-        if ($cartItemExists) {
-            return redirect()->route('inventory')->with('error', 'This product cannot be deleted because it is currently in a cart.');
+            // Delete the product
+            $product->delete();
+
+            return redirect()->route('admin.inventory')->with('success', 'Product deleted successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error deleting product: ' . $e->getMessage());
         }
-
-        // Check if the product exists in any sales transaction
-        $salesTransactionItemExists = DB::table('sales_transaction_items')->where('product_id', $product->id)->exists();
-
-        if ($salesTransactionItemExists) {
-            return redirect()->route('inventory')->with('error', 'This product cannot be deleted because it is part of a sales transaction.');
-        }
-
-        // Delete related records in purchase order items table
-        DB::table('purchase_order_items')->where('product_id', $product->id)->delete();
-
-        // Delete related records in cart items table
-        DB::table('cart_items')->where('product_id', $product->id)->delete();
-
-        // Delete the product
-        $product->delete();
-
-        return redirect()->route('inventory')->with('success', 'Product deleted successfully.');
     }
 }

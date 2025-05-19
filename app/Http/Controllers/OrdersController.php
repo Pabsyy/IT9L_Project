@@ -11,7 +11,12 @@ class OrdersController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 10);
-        $query = SalesTransaction::query();
+        $showAll = $request->get('show_all', false);
+
+        $query = SalesTransaction::query()
+            ->withCount('items')
+            ->with(['items', 'user'])
+            ->select('sales_transactions.*');
 
         // Apply search filter
         if ($request->filled('search')) {
@@ -33,35 +38,42 @@ class OrdersController extends Controller
 
         // Apply status filter
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('order_status', $request->status);
         }
 
-        // Get paginated results with custom per_page
-        $orders = $query->latest()->paginate($perPage)->withQueryString();
-        
         // Get counts for status filters
-        $pendingCount = SalesTransaction::where('status', 'pending')->count();
-        $processingCount = SalesTransaction::where('status', 'processing')->count();
-        $completedCount = SalesTransaction::where('status', 'completed')->count();
-        $cancelledCount = SalesTransaction::where('status', 'cancelled')->count();
+        $pendingCount = SalesTransaction::where('order_status', 'pending')->count();
+        $processingCount = SalesTransaction::where('order_status', 'processing')->count();
+        $completedCount = SalesTransaction::where('order_status', 'completed')->count();
+        $cancelledCount = SalesTransaction::where('order_status', 'cancelled')->count();
+        $deliveredCount = SalesTransaction::where('order_status', 'delivered')->count();
 
-        return view('orders', compact(
+        // Get results based on pagination preference
+        $orders = $showAll ? 
+            $query->orderBy('order_id')->get() : 
+            $query->orderBy('order_id')->paginate($perPage)->withQueryString();
+
+        return view('admin.orders', compact(
             'orders', 
             'pendingCount', 
             'processingCount', 
             'completedCount', 
-            'cancelledCount'
+            'cancelledCount',
+            'deliveredCount',
+            'showAll',
+            'perPage'
         ));
     }
 
     public function show(SalesTransaction $order)
     {
-        return view('orders', compact('order'));
+        $order->load(['user', 'items.product']);
+        return view('admin.orders.show', compact('order'));
     }
 
     public function create()
     {
-        $products = Product::all(['id', 'name', 'price']); // Add this line to get products
+        $products = Product::all(['id', 'name', 'price']);
         return view('orders.create', compact('products'));
     }
 
@@ -80,43 +92,58 @@ class OrdersController extends Controller
             'customer_name' => $validated['customer_name'],
             'customer_email' => $validated['customer_email'],
             'payment_method' => $validated['payment_method'],
-            'status' => 'pending',
+            'order_status' => 'pending',
+            'subtotal' => 0,
+            'tax' => 0,
+            'shipping_fee' => 0,
+            'discount' => 0,
+            'grand_total' => 0,
+            'user_id' => auth()->id(),
+            'reference_number' => 'ORD-' . time() . rand(1000, 9999)
         ]);
 
         // Add items and calculate total
-        $total = 0;
+        $subtotal = 0;
         foreach ($validated['items'] as $item) {
             $product = Product::find($item['product_id']);
-            $subtotal = $product->price * $item['quantity'];
-            $total += $subtotal;
+            $itemSubtotal = $product->price * $item['quantity'];
+            $subtotal += $itemSubtotal;
 
             $order->items()->create([
                 'product_id' => $item['product_id'],
                 'quantity' => $item['quantity'],
-                'price' => $product->price,
-                'subtotal' => $subtotal,
+                'unit_price' => $product->price,
+                'subtotal' => $itemSubtotal
             ]);
         }
 
-        $order->update(['grand_total' => $total]);
+        // Calculate other amounts
+        $tax = $subtotal * 0.12; // 12% tax
+        $shippingFee = 0; // Can be calculated based on your business logic
+        $discount = 0; // Can be calculated based on your business logic
+        $grandTotal = $subtotal + $tax + $shippingFee - $discount;
 
-        return redirect()->route('orders')->with('success', 'Order created successfully.');
+        // Update the order with calculated totals
+        $order->update([
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'shipping_fee' => $shippingFee,
+            'discount' => $discount,
+            'grand_total' => $grandTotal
+        ]);
+
+        return redirect()->route('admin.orders')->with('success', 'Order created successfully.');
     }
 
-    public function edit(SalesTransaction $order)
-    {
-        return view('orders.edit', compact('order'));
-    }
-
-    public function update(Request $request, SalesTransaction $order)
+    public function updateStatus(Request $request, SalesTransaction $order)
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,processing,completed,cancelled',
+            'order_status' => 'required|in:pending,processing,completed,cancelled',
         ]);
 
         $order->update($validated);
 
-        return redirect()->route('orders')->with('success', 'Order updated successfully.');
+        return redirect()->route('admin.orders.show', $order)->with('success', 'Order status updated successfully.');
     }
 
     public function destroy(SalesTransaction $order)
@@ -124,6 +151,6 @@ class OrdersController extends Controller
         $order->items()->delete();
         $order->delete();
 
-        return redirect()->route('orders')->with('success', 'Order deleted successfully.');
+        return redirect()->route('admin.orders')->with('success', 'Order deleted successfully.');
     }
 }

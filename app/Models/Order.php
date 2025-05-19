@@ -4,29 +4,41 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\OrderItem;
 
 class Order extends Model
 {
     use HasFactory;
 
-    protected $table = 'orders'; // Specify the table name if it's not the default 'orders'
     protected $fillable = [
-        'status',
+        'user_id',
         'subtotal',
         'tax',
-        'shipping_cost',
+        'shipping',
         'total',
+        'status',
+        'shipping_info',
+        'payment_info'
     ];
 
-    // Define relationships
-    public function items()
-    {
-        return $this->hasMany(OrderItem::class, 'order_id');
-    }
+    protected $casts = [
+        'shipping_info' => 'array',
+        'payment_info' => 'array',
+        'subtotal' => 'decimal:2',
+        'tax' => 'decimal:2',
+        'shipping' => 'decimal:2',
+        'total' => 'decimal:2'
+    ];
+
+    // If your primary key is different from 'id'
+    protected $primaryKey = 'id';
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
     }
 }

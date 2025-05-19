@@ -53,7 +53,7 @@
             </div>
 
             <div class="flex justify-end space-x-3">
-                <a href="{{ route('orders') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Cancel</a>
+                <a href="{{ route('orders.index') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Cancel</a>
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Create Order</button>
             </div>
         </form>

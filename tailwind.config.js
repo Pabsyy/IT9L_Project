@@ -17,9 +17,25 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
             colors: {
-                primary: '#6366F1', // Indigo-500
-                primaryDark: '#4F46E5', // Indigo-600
+                primary: '#6C47FF',
+                'primary-dark': '#5835E0',
+                secondary: '#57B5E7',
+                success: '#16a34a',
+                danger: '#dc2626',
+                warning: '#f59e0b',
+                info: '#3b82f6'
             },
+            borderRadius: {
+                'none': '0px',
+                'sm': '4px',
+                DEFAULT: '8px',
+                'md': '12px',
+                'lg': '16px',
+                'xl': '20px',
+                '2xl': '24px',
+                '3xl': '32px',
+                'full': '9999px'
+            }
         },
     },
 

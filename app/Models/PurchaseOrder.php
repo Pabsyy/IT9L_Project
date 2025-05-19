@@ -6,26 +6,25 @@ use Illuminate\Database\Eloquent\Model;
 
 class PurchaseOrder extends Model
 {
-    protected $table = 'purchaseorder';
-    protected $primaryKey = 'PurchaseOrderID';
+    protected $table = 'purchase_orders';
     public $timestamps = true;
 
     protected $fillable = [
-        'id', 'SupplierID', 'OrderDate', 'DeliveryDate'
+        'user_id', 'supplier_id', 'order_date', 'delivery_date'
     ];
 
     public function items()
     {
-        return $this->hasMany(PurchaseOrderItem::class, 'PurchaseOrderID');
+        return $this->hasMany(PurchaseOrderItem::class);
     }
 
     public function supplier()
     {
-        return $this->belongsTo(Supplier::class, 'SupplierID');
+        return $this->belongsTo(Supplier::class);
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id');
+        return $this->belongsTo(User::class);
     }
 }

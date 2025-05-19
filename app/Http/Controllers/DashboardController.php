@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 // Import the DB facade
 use Illuminate\Support\Facades\Auth;
 // Import the Auth facade
+use App\Models\Category;
+// Import the Category model
 
 class DashboardController extends Controller
 {
@@ -24,11 +26,12 @@ class DashboardController extends Controller
     {
         // Get the authenticated user
         $user = Auth::user();
-        // Get the first letter of the user's name
-        $userInitials = strtoupper(substr($user->name, 0, 1));
-        // Get the username
+        
+        // Get the user's initials from first_name and last_name
+        $userInitials = strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1));
+        
+        // Get the username (generated from first_name and last_name)
         $username = $user->username;
-        // Get the username of the user
 
         // Check system status
         $systemStatus = $this->checkSystemStatus();
@@ -54,15 +57,18 @@ class DashboardController extends Controller
         // Get the 5 most recent transactions
 
         // Calculate inventory value (sum of price * stock for all products)
-        $inventoryValue = Product::sum(DB::raw('Price * stock'));
+        $inventoryValue = Product::sum(DB::raw('price * stock'));
         // Calculate the inventory value
 
-        // Calculate inventory growth compared to last month
-        $lastMonthInventoryValue = Product::where('created_at', '<', now()->startOfMonth())
-            ->sum(DB::raw('Price * stock'));
+        // Calculate inventory value for the previous month
+        $lastMonth = now()->subMonth()->month;
+        $lastYear = now()->subMonth()->year;
+        $lastMonthValue = Product::whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastYear)
+            ->sum(DB::raw('price * stock'));
         // Calculate the inventory value from last month
-        $inventoryGrowth = $lastMonthInventoryValue > 0 
-            ? (($inventoryValue - $lastMonthInventoryValue) / $lastMonthInventoryValue) * 100 
+        $inventoryGrowth = $lastMonthValue > 0 
+            ? (($inventoryValue - $lastMonthValue) / $lastMonthValue) * 100 
             : 0;
         // Calculate the inventory growth
         
@@ -87,11 +93,14 @@ class DashboardController extends Controller
         // Calculate the order growth
 
         // Get product categories with counts
-        $categories = DB::table('products') // Updated from 'product'
-            ->select('Category as name', DB::raw('COUNT(*) as total_products'))
-            ->whereNotNull('Category')
-            ->groupBy('Category')
-            ->get();
+        $categories = Category::withCount('products')
+            ->get()
+            ->map(function ($category) {
+                return [
+                    'name' => $category->name,
+                    'total_products' => $category->products_count
+                ];
+            });
         // Get the product categories
 
         // Get monthly revenues for the chart
@@ -120,7 +129,7 @@ class DashboardController extends Controller
         // Calculate the revenue growth
 
         $data = [
-            'totalInventoryValue' => $inventoryValue, // Changed from 'inventoryValue'
+            'totalInventoryValue' => $inventoryValue,
             'inventoryGrowth' => round($inventoryGrowth, 1),
             'totalRevenue' => $totalRevenue,
             'totalOrders' => $totalOrders,
@@ -129,22 +138,20 @@ class DashboardController extends Controller
             'totalProducts' => $totalProducts,
             'newProducts' => $newProducts,
             'topSellingParts' => $topSellingParts,
-            'recentTransactions' => $recentTransactions,  // Changed from recentOrders
+            'recentTransactions' => $recentTransactions,
             'lowStockProducts' => $lowStockProducts,
-            'lowStockItems' => $lowStockCount, // Add this line to match the view
+            'lowStockItems' => $lowStockCount,
             'newLowStock' => $newLowStock,
             'systemStatus' => $systemStatus,
-            'categories' => $categories, // Add this line
-            'monthlyRevenues' => $monthlyRevenues, // Add this line
+            'categories' => $categories,
+            'monthlyRevenues' => $monthlyRevenues,
             'monthlyRevenue' => $monthlyRevenue,
             'revenueGrowth' => $revenueGrowth,
             'userInitials' => $userInitials,
             'username' => $username,
         ];
-        // Assign the data to an array
 
         return view('dashboard', $data);
-        // Return the dashboard view with the data
     }
 
     private function checkSystemStatus()

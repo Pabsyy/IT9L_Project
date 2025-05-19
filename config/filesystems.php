@@ -65,6 +65,17 @@ return [
             'root' => public_path('images'),
             'url' => env('APP_URL').'/images',
             'visibility' => 'public',
+            'throw' => true,
+            'permissions' => [
+                'file' => [
+                    'public' => 0644,
+                    'private' => 0644,
+                ],
+                'dir' => [
+                    'public' => 0755,
+                    'private' => 0755,
+                ],
+            ],
         ],
 
     ],

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('inventory_movements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete(); // Updated from 'product'
-            $table->enum('type', ['purchase', 'sale', 'adjustment']);
+            $table->enum('type', ['purchase', 'sale', 'adjustment', 'damage', 'return']);
             $table->integer('quantity')->signed();
             $table->timestamp('moved_at')->useCurrent();
             $table->timestamps();

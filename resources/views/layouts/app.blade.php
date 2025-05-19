@@ -55,7 +55,7 @@
                 @php
                     $title = '';
                     switch (Route::currentRouteName()) {
-                        case 'dashboard':
+                        case 'admin.dashboard':
                             $title = 'Dashboard Overview';
                             break;
                         case 'inventory':

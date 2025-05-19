@@ -378,18 +378,18 @@
                         <table class="w-full">
                             <thead>
                                 <tr class="text-left text-gray-600">
-                                    <th class="px-6 py-3 font-medium">Transaction ID</th>
-                                    <th class="px-6 py-3 font-medium">User</th>
-                                    <th class="px-6 py-3 font-medium">Date</th>
-                                    <th class="px-6 py-3 font-medium">Amount</th>
+                                    <th class="px-6 py-3 font-medium">TRANSACTION ID</th>
+                                    <th class="px-6 py-3 font-medium">CUSTOMER NAME</th>
+                                    <th class="px-6 py-3 font-medium">DATE</th>
+                                    <th class="px-6 py-3 font-medium">AMOUNT</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($recentTransactions as $transaction)
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4">{{ $transaction->SalesTransactionID }}</td>
-                                    <td class="px-6 py-4">{{ $transaction->user->username ?? 'Deleted User' }}</td>
-                                    <td class="px-6 py-4">{{ $transaction->TransactionDate }}</td>
+                                    <td class="px-6 py-4">{{ $transaction->order_id }}</td>
+                                    <td class="px-6 py-4">{{ $transaction->customer_name }}</td>
+                                    <td class="px-6 py-4">{{ $transaction->Transaction_date ? $transaction->Transaction_date->format('M d, Y') : 'N/A' }}</td>
                                     <td class="px-6 py-4">₱{{ number_format($transaction->grand_total, 2) }}</td>
                                 </tr>
                                 @endforeach
